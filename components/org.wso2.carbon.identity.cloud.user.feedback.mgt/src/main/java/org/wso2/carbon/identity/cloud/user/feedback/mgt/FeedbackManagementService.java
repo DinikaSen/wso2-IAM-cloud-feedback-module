@@ -55,7 +55,7 @@ public interface FeedbackManagementService {
      * @return Feedback entry
      * @throws FeedbackManagementException
      */
-    Feedback getFeedbackEntry(int feedbackID)
+    Feedback getFeedbackEntry(String feedbackID)
             throws FeedbackManagementException;
 
     /**
@@ -64,7 +64,7 @@ public interface FeedbackManagementService {
      * @param feedbackID ID of the feedback entry
      * @throws FeedbackManagementException
      */
-    void deleteFeedbackEntry(int feedbackID)
+    void deleteFeedbackEntry(String feedbackID)
             throws FeedbackManagementException;
 
     /**
@@ -74,16 +74,17 @@ public interface FeedbackManagementService {
      * @param feedbackEntry Feedback object with new details
      * @throws FeedbackManagementException
      */
-    void updateFeedbackEntry(int feedbackID, Feedback feedbackEntry)
+    Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry)
             throws FeedbackManagementException;
 
     /**
-     * Check the existence of a feedback entry.
+/*     * Check the existence of a feedback entry.
      *
      * @param feedbackID Feedback entry ID.
      * @return Feedback entry existence
      * @throws FeedbackManagementException
-     */
-    boolean isFeedbackAvailable(int feedbackID) throws FeedbackManagementException;
+     *//*
+    // boolean isFeedbackAvailable(String feedbackID) throws FeedbackManagementException;*/
 
+    Integer getCountOfFeedbackResults(String filter) throws FeedbackManagementException;
 }

@@ -18,6 +18,8 @@
 
 package org.wso2.carbon.identity.cloud.user.feedback.mgt;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants;
@@ -29,12 +31,15 @@ import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.util.FeedbackConfigParser;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.util.FeedbackExceptionManagementUtil;
 
+import javax.ws.rs.core.Response;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.ErrorMessages.ERROR_CODE_FEEDBACK_MESSAGE_REQUIRED;
+import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.AttributeOperators.sw;
+import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.ErrorMessages.*;
 import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.FEEDBACK_SEARCH_LIMIT_PATH;
 
 /**
@@ -44,8 +49,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
     private static final Log log = LogFactory.getLog(FeedbackManagementServiceImpl.class);
     private static FeedbackManagementServiceImpl feedbackMgtService = new FeedbackManagementServiceImpl();
-    private static final int DEFAULT_SEARCH_LIMIT = 100;
-    private FeedbackConfigParser configParser;
+
 
     /**
      * Private constructor which will not allow to create objects of this class from outside.
@@ -82,44 +86,50 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
     }
 
     @Override
-    public Feedback getFeedbackEntry(int feedbackID) throws FeedbackManagementException {
+    public Feedback getFeedbackEntry(String feedbackID) throws FeedbackManagementException {
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback feedbackResult = feedbackMgtDAO.getFeedbackEntry(feedbackID);
         return feedbackResult;
     }
 
     @Override
-    public void deleteFeedbackEntry(int feedbackID) throws FeedbackManagementException {
+    public void deleteFeedbackEntry(String feedbackID) throws FeedbackManagementException {
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
-        int deletedId = feedbackMgtDAO.deleteFeedbackEntry(feedbackID);
+        String deletedId = feedbackMgtDAO.deleteFeedbackEntry(feedbackID);
         if (log.isDebugEnabled()) {
             log.debug("Feedback entry deleted successfully. ID: " + deletedId);
         }
     }
 
     @Override
-    public void updateFeedbackEntry(int feedbackID, Feedback feedbackEntry) throws FeedbackManagementException {
-
-    }
-
-    private void validatePaginationParameters(int limit, int offset) throws FeedbackManagementClientException {
-
-        if (limit < 0 || offset < 0) {
-            throw FeedbackExceptionManagementUtil.handleClientException(FeedbackMgtConstants.ErrorMessages.
-                    ERROR_CODE_INVALID_ARGUMENTS_FOR_LIM_OFFSET, null);
+    public Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry) throws FeedbackManagementException {
+        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
+        Feedback updatedFeedback = feedbackMgtDAO.updateFeedbackEntry(feedbackID, feedbackEntry);
+        if (log.isDebugEnabled()) {
+            log.debug("Feedback entry updated successfully. ID: " + updatedFeedback.getUuid());
         }
+        return updatedFeedback;
     }
 
     @Override
-    public boolean isFeedbackAvailable(int feedbackID) throws FeedbackManagementException {
+    public Integer getCountOfFeedbackResults(String filter) throws FeedbackManagementException {
+
+        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
+        //Integer resultCount = feedbackMgtDAO.countListResults(filterAttribute, filterValue);
+        Integer resultCount = feedbackMgtDAO.countListResults(filter);
+        return resultCount;
+    }
+
+/*    @Override
+    public boolean isFeedbackAvailable(String feedbackID) throws FeedbackManagementException {
 
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         return feedbackMgtDAO.isFeedbackAvailable(feedbackID);
-    }
+    }*/
 
     private void validateInputParameters(Feedback feedback) throws FeedbackManagementException {
 
-        if (isBlank(feedback.getMessage())) {
+        if (feedback.getMessage() == null | isBlank(feedback.getMessage())) {
             if (log.isDebugEnabled()) {
                 log.debug("Feedback message cannot be empty");
             }
@@ -131,14 +141,4 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
         }
     }
 
-    private int getDefaultLimitFromConfig() {
-
-        int limit = DEFAULT_SEARCH_LIMIT;
-
-        if (configParser.getConfiguration().get(FEEDBACK_SEARCH_LIMIT_PATH) != null) {
-            limit = Integer.parseInt(configParser.getConfiguration()
-                    .get(FEEDBACK_SEARCH_LIMIT_PATH).toString());
-        }
-        return limit;
-    }
 }

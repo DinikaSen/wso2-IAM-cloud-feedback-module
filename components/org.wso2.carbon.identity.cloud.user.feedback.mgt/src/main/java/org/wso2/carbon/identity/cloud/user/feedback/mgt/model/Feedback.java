@@ -35,18 +35,11 @@ public class Feedback {
     private String uuid;
     private String timeCreated;
 
-    public Feedback(String message) {
-        this.message = message;
+    public Feedback() {
     }
 
-    public Feedback(Integer id, String message, String email, String contactNo, ArrayList<String> tags, String uuid, String timeCreated) {
-        this.id = id;
-        this.message = message;
-        this.email = email;
-        this.contactNo = contactNo;
-        this.tags = tags;
+    public Feedback(String uuid) {
         this.uuid = uuid;
-        this.timeCreated = timeCreated;
     }
 
     public Feedback(Integer id, String message, String email, String contactNo, String uuid, String timeCreated) {
@@ -57,22 +50,6 @@ public class Feedback {
         this.uuid = uuid;
         this.timeCreated = timeCreated;
     }
-
-    public Feedback(Integer id, String message, String email, String uuid, String timeCreated) {
-        this.id = id;
-        this.message = message;
-        this.email = email;
-        this.uuid = uuid;
-        this.timeCreated = timeCreated;
-    }
-
-    public Feedback(Integer id, String message, String uuid, String timeCreated) {
-        this.id = id;
-        this.message = message;
-        this.uuid = uuid;
-        this.timeCreated = timeCreated;
-    }
-
 
     public Integer getId() {
         return id;

@@ -55,7 +55,7 @@ public interface FeedbackMgtDAO {
      * @return Feedback entry
      * @throws FeedbackManagementException
      */
-    Feedback getFeedbackEntry(int feedbackID) throws FeedbackManagementException;
+    Feedback getFeedbackEntry(String feedbackID) throws FeedbackManagementException;
 
     /**
      * Delete a feedback entry using the feedback ID.
@@ -63,7 +63,7 @@ public interface FeedbackMgtDAO {
      * @param feedbackID ID of the feedback entry
      * @throws FeedbackManagementException
      */
-    int deleteFeedbackEntry(int feedbackID) throws FeedbackManagementException;
+    String deleteFeedbackEntry(String feedbackID) throws FeedbackManagementException;
 
     /**
      * Update a feedback entry.
@@ -72,7 +72,7 @@ public interface FeedbackMgtDAO {
      * @param feedbackEntry Feedback object with new details
      * @throws FeedbackManagementException
      */
-    Feedback updateFeedbackEntry(int feedbackID, Feedback feedbackEntry) throws FeedbackManagementException;
+    Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry) throws FeedbackManagementException;
 
 
     /**
@@ -82,5 +82,7 @@ public interface FeedbackMgtDAO {
      * @return  isAvailable Existence of the feedback defined by the id.
      * @throws FeedbackManagementException
      */
-    boolean isFeedbackAvailable(int feedbackID) throws FeedbackManagementException;
+   // boolean isFeedbackAvailable(String feedbackID) throws FeedbackManagementException;
+
+   Integer countListResults(String filter) throws FeedbackManagementException;
 }

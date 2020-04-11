@@ -54,27 +54,23 @@ public class FeedbackManagementServiceComponent {
     @Activate
     protected void activate(ComponentContext context) {
 
-        try{
-            BundleContext bundleContext = context.getBundleContext();
-            log.info("Feedback Management bundle is activated.");
-            FeedbackConfigParser configParser = new FeedbackConfigParser();
-            DataSource dataSource = initDataSource(configParser);
+        BundleContext bundleContext = context.getBundleContext();
+        log.info("Feedback Management bundle is activated.");
+        FeedbackConfigParser configParser = new FeedbackConfigParser();
+        DataSource dataSource = initDataSource(configParser);
 
-            //TODO: Clarify of this is needed
-            initializeFeedbackDB(dataSource);
+        //TODO: Clarify of this is needed
+        initializeFeedbackDB(dataSource);
 
-            setDataSourceToDataHolder(dataSource);
+        setDataSourceToDataHolder(dataSource);
 
-            // Registering user feedback management service as an OSGIService.
-            serviceRegistration = bundleContext.registerService(FeedbackManagementService.class,
-                    FeedbackManagementServiceImpl.getInstance(), null);
-            if (log.isDebugEnabled()) {
-                log.debug("Feedback Management bundle is activated.");
-            }
+        // Registering user feedback management service as an OSGIService.
+        serviceRegistration = bundleContext.registerService(FeedbackManagementService.class,
+                FeedbackManagementServiceImpl.getInstance(), null);
+        if (log.isDebugEnabled()) {
+            log.debug("Feedback Management bundle is activated.");
         }
-        catch (Exception e) {
-            log.error(e);
-        }
+
     }
 
     @Deactivate
