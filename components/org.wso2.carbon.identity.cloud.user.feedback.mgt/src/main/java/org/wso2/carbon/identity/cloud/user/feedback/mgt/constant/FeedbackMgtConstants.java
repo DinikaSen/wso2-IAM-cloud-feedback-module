@@ -37,7 +37,7 @@ public class FeedbackMgtConstants {
     public static final String WHERE = "WHERE ";
     public static final String LIKE = "LIKE ?";
     public static final int DEFAULT_SEARCH_LIMIT = 30;
-    public static final String DEFAULT_SORT_BY = "ID";
+    public static final String DEFAULT_SORT_BY = "ID ";
     public static final String DEFAULT_SORT_ORDER = "ASC";
 
 
@@ -75,6 +75,8 @@ public class FeedbackMgtConstants {
         ERROR_CODE_PURPOSE_ID_INVALID("CM_00024", "Invalid Feedback ID: %s"),
         ERROR_CODE_LIST_FEEDBACK("CM_00010", "Error occurred while listing feedback from DB for " +
                 "limit: %s and offset: %s."),
+        ERROR_CODE_LIST_FEEDBACK_WITH_FILTER("CM_00010", "Error occurred while listing feedback from DB for " +
+                "filter: %s limit: %s and offset: %s."),
         ERROR_CODE_DELETE_FEEDBACK("CM_00009", "Error occurred while deleting feedback from DB for the ID: %s."),
         ERROR_CODE_DELETE_FEEDBACK_TAGS("CM_00009", "Error occurred while deleting feedback tags from DB for the ID: " +
                 "%s."),

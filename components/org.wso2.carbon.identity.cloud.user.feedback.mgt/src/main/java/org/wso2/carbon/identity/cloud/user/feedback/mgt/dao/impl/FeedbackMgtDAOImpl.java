@@ -41,6 +41,7 @@ import java.util.*;
 
 import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.ErrorMessages.*;
 import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.FEEDBACK_SEARCH_LIMIT_PATH;
+import static org.wso2.carbon.identity.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
  * This class access the CLD_FEEDBACK and CLD_FEEDBACK_TAGS tables in Feedback database to store, update retrieve
@@ -88,38 +89,96 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         String sortOrderValidated = validateSortingOrder(sortOrder);
 
         Pair<String, String> filterExpression = buildFilter(filter);
-        String filterAttribute = filterExpression.getLeft();
-        String filterValue = filterExpression.getRight();
 
-        if (!StringUtils.isBlank(filterValue) && !"*".equals(filterValue)) {
-            return listFeedbackEntries(limit, offset, sortBy, sortOrder);
-            ;
+        if (filterExpression == null) {
+            return listFeedbackEntries(limit, offset, sortByValidated, sortOrderValidated);
         }
-        String filterResolvedForSQL = resolveSQLFilter(filterValue);
-        List<Feedback> feedbacks;
+
+        String filterAttribute = filterExpression.getLeft();
+        String filterResolvedForSQL = resolveSQLFilter(filterExpression.getRight());
+        System.out.println("fil attr : " + filterAttribute + " fil resolved : " + filterResolvedForSQL);
+
+        List<Feedback> feedbackResultsList;
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
-            //String query = LIST_PAGINATED_SORTED_FEEDBACK_FROM_ID;
-            String query = FeedbackMgtSQLConstants.LIST_PAGINATED_FEEDBACK_FROM_ID;
-            feedbacks = jdbcTemplate.executeQuery(query,
-                    (resultSet, rowNumber) -> new Feedback(resultSet.getInt(1),
-                            resultSet.getString(2),
-                            resultSet.getString(3),
-                            resultSet.getString(4),
-                            resultSet.getString(5),
-                            resultSet.getString(6)),
-                    preparedStatement -> {
-//                            preparedStatement.setString(1, sortBy);
-//                            preparedStatement.setString(2, sortOrder);
-                        preparedStatement.setInt(1, limit);
-                        preparedStatement.setInt(2, offset);
-                    });
-        } catch (DataAccessException e) {
-            throw new FeedbackManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_FEEDBACK.
-                    getMessage(), limit, offset), ErrorMessages.ERROR_CODE_LIST_FEEDBACK.getCode(), e);
+            switch (FeedbackMgtConstants.FilterableAttributes.valueOf(filterAttribute)) {
+                case email:
+                    String sqlStatementWithSorting =
+                            FeedbackMgtSQLConstants.LIST_FEEDBACK_WITH_FILTER + " " + sortByValidated + " " +
+                                    sortOrderValidated + " " + FeedbackMgtSQLConstants.LIST_FEEDBACK_PAGINATION_TAIL;
+                    System.out.println(sqlStatementWithSorting);
+                    try {
+                        feedbackResultsList = jdbcTemplate.withTransaction(template -> {
+                            List<Feedback> feedbackInfoList =
+                                    jdbcTemplate.executeQuery(sqlStatementWithSorting,
+                                            (resultSet, rowNumber) -> {
+                                                Feedback feedbackResult = new Feedback();
+                                                feedbackResult.setId(resultSet.getInt(1));
+                                                feedbackResult.setMessage(resultSet.getString(2));
+                                                feedbackResult.setEmail(resultSet.getString(3));
+                                                feedbackResult.setContactNo(resultSet.getString(4));
+                                                feedbackResult.setUuid(resultSet.getString(5));
+                                                feedbackResult.setTimeCreated(resultSet.getString(6));
+                                                return feedbackResult;
+                                            }, preparedStatement -> {
+                                                preparedStatement.setString(1, filterResolvedForSQL);
+                                                preparedStatement.setInt(2, limit);
+                                                preparedStatement.setInt(3, offset);
+                                            });
+
+                            if (feedbackInfoList != null) {
+                                feedbackInfoList.forEach(rethrowConsumer(feedbackInfo -> {
+                                    feedbackInfo.setTags(listTags(feedbackInfo.getId()));
+                                }));
+                            }
+                            return feedbackInfoList;
+                        });
+                    } catch (TransactionException e) {
+                        throw new FeedbackManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_FEEDBACK.
+                                getMessage(), limit, offset), ErrorMessages.ERROR_CODE_LIST_FEEDBACK.getCode(), e);
+                    }
+                    return feedbackResultsList;
+                case tag:
+
+                    String sqlStatementForTagsWithSorting =
+                            FeedbackMgtSQLConstants.LIST_FEEDBACK_WITH_TAGS_FILTER + " " + sortByValidated + " " +
+                                    sortOrderValidated + " " + FeedbackMgtSQLConstants.LIST_FEEDBACK_PAGINATION_TAIL;
+                    System.out.println(sqlStatementForTagsWithSorting);
+                    try {
+                        feedbackResultsList = jdbcTemplate.withTransaction(template -> {
+                            List<Feedback> feedbackInfoList =
+                                    jdbcTemplate.executeQuery(sqlStatementForTagsWithSorting,
+                                            (resultSet, rowNumber) -> {
+                                                Feedback feedbackResult = new Feedback();
+                                                feedbackResult.setId(resultSet.getInt(1));
+                                                feedbackResult.setMessage(resultSet.getString(2));
+                                                feedbackResult.setEmail(resultSet.getString(3));
+                                                feedbackResult.setContactNo(resultSet.getString(4));
+                                                feedbackResult.setUuid(resultSet.getString(5));
+                                                feedbackResult.setTimeCreated(resultSet.getString(6));
+                                                feedbackResult.setTags(
+                                                        new ArrayList<>(Arrays.asList(resultSet.getString(7))));
+                                                return feedbackResult;
+                                            }, preparedStatement -> {
+                                                preparedStatement.setString(1, filterResolvedForSQL);
+                                                preparedStatement.setInt(2, limit);
+                                                preparedStatement.setInt(3, offset);
+                                            });
+
+                            return feedbackInfoList;
+                        });
+                    } catch (TransactionException e) {
+                        throw new FeedbackManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_FEEDBACK.
+                                getMessage(), limit, offset), ErrorMessages.ERROR_CODE_LIST_FEEDBACK.getCode(), e);
+                    }
+                    return feedbackResultsList;
+            }
+        } catch (IllegalArgumentException e) {
+            throw FeedbackExceptionManagementUtil.handleClientException(FeedbackMgtConstants.ErrorMessages.
+                    ERROR_CODE_UNSUPPORTED_FILTER_ATTRIBUTE, filterAttribute, e);
         }
-        return feedbacks;
+        return null;
     }
 
     @Override
@@ -143,16 +202,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         }
 
         if (userFeedback != null) {
-            try {
-                ArrayList<String> tags = new ArrayList<>();
-                jdbcTemplate.executeQuery(FeedbackMgtSQLConstants.GET_FEEDBACK_TAGS_FROM_ID, ((resultSet, rowNumber) ->
-                                tags.add(resultSet.getString(1))),
-                        preparedStatement -> preparedStatement.setInt(1, userFeedback.getId()));
-                userFeedback.setTags(tags);
-            } catch (DataAccessException e) {
-                throw FeedbackExceptionManagementUtil.handleServerException(ErrorMessages.ERROR_CODE_SELECT_FEEDBACK_BY_ID,
-                        String.valueOf(feedbackID), e);
-            }
+            userFeedback.setTags(listTags(userFeedback.getId()));
         }
 
         return userFeedback;
@@ -220,7 +270,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
 
         int count;
         String filterQueryValue = resolveSQLFilter(filterValue);
-        String sqlStatementWithFilter = generateSqlForFilter(filterAttribute);
+        String sqlStatementWithFilter = generateSqlFilterForCount(filterAttribute);
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
@@ -275,6 +325,21 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         }
     }
 
+    private ArrayList<String> listTags(int feedbackId) throws FeedbackManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            ArrayList<String> tags = new ArrayList<>();
+            jdbcTemplate.executeQuery(FeedbackMgtSQLConstants.GET_FEEDBACK_TAGS_FROM_ID, ((resultSet, rowNumber) ->
+                            tags.add(resultSet.getString(1))),
+                    preparedStatement -> preparedStatement.setInt(1, feedbackId));
+            return tags;
+        } catch (DataAccessException e) {
+            throw FeedbackExceptionManagementUtil.handleServerException(ErrorMessages.ERROR_CODE_SELECT_FEEDBACK_BY_ID,
+                    String.valueOf(feedbackId), e);
+        }
+    }
+
     private void deleteTags(int id, String feedbackUuid) throws FeedbackManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
@@ -303,6 +368,49 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         }
         return count;
 
+    }
+
+    private List<Feedback> listFeedbackEntries(int limit, int offset, String sortBy,
+                                              String sortOrder) throws FeedbackManagementException {
+
+        List<Feedback> feedbackResultsList;
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+
+        String sqlStatementWithSorting =
+                FeedbackMgtSQLConstants.LIST_FEEDBACK_WITHOUT_FILTER + sortBy + " " + sortOrder +
+                FeedbackMgtSQLConstants.LIST_FEEDBACK_PAGINATION_TAIL;
+        try {
+            feedbackResultsList = jdbcTemplate.withTransaction(template -> {
+                List<Feedback> feedbackInfoList =
+                        jdbcTemplate.executeQuery(sqlStatementWithSorting,
+                        (resultSet, rowNumber) -> {
+                            Feedback feedbackResult = new Feedback();
+                            feedbackResult.setId(resultSet.getInt(1));
+                            feedbackResult.setMessage(resultSet.getString(2));
+                            feedbackResult.setEmail(resultSet.getString(3));
+                            feedbackResult.setContactNo(resultSet.getString(4));
+                            feedbackResult.setUuid(resultSet.getString(5));
+                            feedbackResult.setTimeCreated(resultSet.getString(6));
+                            return feedbackResult;
+                        }, preparedStatement -> {
+                            preparedStatement.setString(1, sortBy);
+                            //preparedStatement.setString(2, sortOrder);
+                            preparedStatement.setInt(2, limit);
+                            preparedStatement.setInt(3, offset);
+                        });
+
+                if (feedbackInfoList != null) {
+                    feedbackInfoList.forEach(rethrowConsumer(feedbackInfo -> {
+                        feedbackInfo.setTags(listTags(feedbackInfo.getId()));
+                    }));
+                }
+                return feedbackInfoList;
+            });
+        } catch (TransactionException e) {
+            throw new FeedbackManagementServerException(String.format(ErrorMessages.ERROR_CODE_LIST_FEEDBACK.
+                    getMessage(), limit, offset), ErrorMessages.ERROR_CODE_LIST_FEEDBACK.getCode(), e);
+        }
+        return feedbackResultsList;
     }
 
     /**
@@ -335,7 +443,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         if (sortBy == null || sortBy.isEmpty()) {
             sortBy = FeedbackMgtConstants.DEFAULT_SORT_BY;
 
-        } else if (isSortableAttribute(sortBy)) {
+        } else if (!isSortableAttribute(sortBy)) {
             throw new FeedbackManagementClientException(String.format(ERROR_CODE_UNSUPPORTED_SORT_BY_ATTRIBUTE.
                     getMessage(), sortBy), ERROR_CODE_UNSUPPORTED_SORT_BY_ATTRIBUTE.getCode());
         }
@@ -347,7 +455,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
 
         if (sortOrder == null || sortOrder.isEmpty()) {
             sortOrder = FeedbackMgtConstants.DEFAULT_SORT_ORDER;
-        } else if (isValidSortOrder(sortOrder)) {
+        } else if (!isValidSortOrder(sortOrder)) {
             throw new FeedbackManagementClientException(String.format(ErrorMessages.ERROR_CODE_INVALID_SORT_ORDER.
                     getMessage(), sortOrder), ErrorMessages.ERROR_CODE_INVALID_SORT_ORDER.getCode());
         }
@@ -448,7 +556,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         return sqlFilter;
     }
 
-    private String generateSqlForFilter(String filterAttribute) throws FeedbackManagementClientException {
+    private String generateSqlFilterForCount(String filterAttribute) throws FeedbackManagementClientException {
 
 
         String sqlQueryPart = "";
@@ -473,5 +581,4 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         return sqlQueryPart;
 
     }
-
 }
