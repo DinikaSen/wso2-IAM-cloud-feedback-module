@@ -39,6 +39,7 @@ import org.wso2.carbon.database.utils.jdbc.exceptions.DataAccessException;
 
 import java.util.*;
 
+import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.DEFAULT_SEARCH_LIMIT;
 import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.ErrorMessages.*;
 import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.FEEDBACK_SEARCH_LIMIT_PATH;
 import static org.wso2.carbon.identity.core.util.LambdaExceptionUtils.rethrowConsumer;
@@ -82,8 +83,9 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
     public List<Feedback> listFeedbackEntries(String filter, int limit, int offset, String sortBy,
                                               String sortOrder) throws FeedbackManagementException {
 
-        validateAttributesForPagination(offset, limit);
-        System.out.println("Offset : " + offset + " limit : " + limit);
+        int limitValidated = validateLimitForPagination(limit);
+        int offsetValidated = validateOffsetForPagination(offset);
+        System.out.println("----------------------- Offset : " + offsetValidated + " limit : " + limitValidated);
 
         String sortByValidated = validateSortingAttribute(sortBy);
         String sortOrderValidated = validateSortingOrder(sortOrder);
@@ -91,7 +93,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         Pair<String, String> filterExpression = buildFilter(filter);
 
         if (filterExpression == null) {
-            return listFeedbackEntries(limit, offset, sortByValidated, sortOrderValidated);
+            return listFeedbackEntries(limitValidated, offsetValidated, sortByValidated, sortOrderValidated);
         }
 
         String filterAttribute = filterExpression.getLeft();
@@ -102,7 +104,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
 
         try {
-            switch (FeedbackMgtConstants.FilterableAttributes.valueOf(filterAttribute)) {
+            switch (FeedbackMgtConstants.FilterableAttributes.valueOf(filterAttribute.toLowerCase())) {
                 case email:
                     String sqlStatementWithSorting =
                             FeedbackMgtSQLConstants.LIST_FEEDBACK_WITH_FILTER + " " + sortByValidated + " " +
@@ -123,8 +125,8 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                                                 return feedbackResult;
                                             }, preparedStatement -> {
                                                 preparedStatement.setString(1, filterResolvedForSQL);
-                                                preparedStatement.setInt(2, limit);
-                                                preparedStatement.setInt(3, offset);
+                                                preparedStatement.setInt(2, limitValidated);
+                                                preparedStatement.setInt(3, offsetValidated);
                                             });
 
                             if (feedbackInfoList != null) {
@@ -379,6 +381,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         String sqlStatementWithSorting =
                 FeedbackMgtSQLConstants.LIST_FEEDBACK_WITHOUT_FILTER + sortBy + " " + sortOrder +
                 FeedbackMgtSQLConstants.LIST_FEEDBACK_PAGINATION_TAIL;
+        System.out.println("STATEMENT------------------------- : " + sqlStatementWithSorting);
         try {
             feedbackResultsList = jdbcTemplate.withTransaction(template -> {
                 List<Feedback> feedbackInfoList =
@@ -393,10 +396,8 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                             feedbackResult.setTimeCreated(resultSet.getString(6));
                             return feedbackResult;
                         }, preparedStatement -> {
-                            preparedStatement.setString(1, sortBy);
-                            //preparedStatement.setString(2, sortOrder);
-                            preparedStatement.setInt(2, limit);
-                            preparedStatement.setInt(3, offset);
+                            preparedStatement.setInt(1, limit);
+                            preparedStatement.setInt(2, offset);
                         });
 
                 if (feedbackInfoList != null) {
@@ -420,22 +421,27 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
      * @param limit  Count value.
      * @throws FeedbackManagementException
      */
-    private void validateAttributesForPagination(int offset, int limit) throws FeedbackManagementException {
+    private int validateLimitForPagination(int limit) throws FeedbackManagementException {
 
         if (limit == 0) {
-            limit = getDefaultLimitFromConfig();
+            limit = FeedbackMgtConstants.DEFAULT_SEARCH_LIMIT;
             if (log.isDebugEnabled()) {
-                log.debug("Limit is not defined the request, hence set tp default value: " + limit);
+                log.debug("Limit is not defined the request, hence set to default value: " + limit);
             }
-        } else if (offset < 0) {
+        } else if (limit < 0) {
+            throw new FeedbackManagementClientException(String.format(ErrorMessages.ERROR_CODE_INVALID_LIMIT.
+                    getMessage()), ErrorMessages.ERROR_CODE_INVALID_LIMIT.getCode());
+        }
+        return limit;
+    }
+
+    private int validateOffsetForPagination(int offset) throws FeedbackManagementException {
+
+        if (offset < 0) {
             throw new FeedbackManagementClientException(String.format(ErrorMessages.ERROR_CODE_INVALID_OFFSET.
                     getMessage()), ErrorMessages.ERROR_CODE_INVALID_OFFSET.getCode());
         }
-
-        if (limit < 0) {
-            throw new FeedbackManagementClientException(String.format(ErrorMessages.ERROR_CODE_INVALID_LIMIT.
-                    getMessage(), limit, offset), ErrorMessages.ERROR_CODE_INVALID_LIMIT.getCode());
-        }
+        return offset;
     }
 
     private String validateSortingAttribute(String sortBy) throws FeedbackManagementException {
@@ -465,24 +471,13 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
     private boolean isSortableAttribute(String attribute) {
 
         return Arrays.stream(FeedbackMgtConstants.SortableAttributes.values()).anyMatch(sortableAttribute -> sortableAttribute.name()
-                .equals(attribute));
+                .equals(attribute.toLowerCase()));
     }
 
     private boolean isValidSortOrder(String sortOrder) {
 
         return Arrays.stream(FeedbackMgtConstants.SortOrderOperators.values()).anyMatch(sortableAttribute -> sortableAttribute.name()
-                .equals(sortOrder));
-    }
-
-    private int getDefaultLimitFromConfig() {
-
-        int limit = FeedbackMgtConstants.DEFAULT_SEARCH_LIMIT;
-
-        if (configParser.getConfiguration().get(FEEDBACK_SEARCH_LIMIT_PATH) != null) {
-            limit = Integer.parseInt(configParser.getConfiguration()
-                    .get(FEEDBACK_SEARCH_LIMIT_PATH).toString());
-        }
-        return limit;
+                .equals(sortOrder.toLowerCase()));
     }
 
     private Pair<String, String> buildFilter(String filter) throws FeedbackManagementClientException {
@@ -506,6 +501,8 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                         ERROR_CODE_INVALID_FILTER_QUERY, null);
             }
         } else {
+            System.out.println("_________________________________________________________filter " +
+                    "null________________________________________________________");
             return null;
         }
     }
@@ -514,7 +511,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
 
         String formattedFilter = null;
         try {
-            switch (FeedbackMgtConstants.AttributeOperators.valueOf(operation)) {
+            switch (FeedbackMgtConstants.AttributeOperators.valueOf(operation.toLowerCase())) {
                 case sw:
                     formattedFilter = attributeValue + "*";
                     break;
@@ -539,7 +536,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
     private boolean isFilterableAttribute(String attribute) {
 
         return Arrays.stream(FeedbackMgtConstants.FilterableAttributes.values()).anyMatch(filterableAttribute -> filterableAttribute.name()
-                .equals(attribute));
+                .equals(attribute.toLowerCase()));
     }
 
     // TODO: Check if really needed
@@ -561,7 +558,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
 
         String sqlQueryPart = "";
         try {
-            switch (FeedbackMgtConstants.FilterableAttributes.valueOf(filterAttribute)) {
+            switch (FeedbackMgtConstants.FilterableAttributes.valueOf(filterAttribute.toLowerCase())) {
                 case email:
                     sqlQueryPart =
                             FeedbackMgtSQLConstants.GET_FEEDBACK_COUNT + FeedbackMgtConstants.WHERE +

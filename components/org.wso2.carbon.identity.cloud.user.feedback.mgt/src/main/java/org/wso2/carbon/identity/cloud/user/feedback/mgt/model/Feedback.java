@@ -38,8 +38,18 @@ public class Feedback {
     public Feedback() {
     }
 
+    // TODO : remove if not used
     public Feedback(String uuid) {
         this.uuid = uuid;
+    }
+
+    public Feedback(Integer id, String message, String email, String contactNo, String uuid, ArrayList<String> tags) {
+        this.id = id;
+        this.message = message;
+        this.email = email;
+        this.contactNo = contactNo;
+        this.uuid = uuid;
+        this.tags = tags;
     }
 
     public Feedback(Integer id, String message, String email, String contactNo, String uuid, String timeCreated) {

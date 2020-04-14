@@ -45,7 +45,7 @@ public class FeedbackMgtSQLConstants {
     public static final String LIST_FEEDBACK_WITHOUT_FILTER =
             "SELECT ID, MESSAGE, EMAIL, CONTACT_NO, UUID, TIME_CREATED FROM CLD_FEEDBACK ORDER BY ";
 
-    public static final String LIST_FEEDBACK_PAGINATION_TAIL = "LIMIT ? OFFSET ?";
+    public static final String LIST_FEEDBACK_PAGINATION_TAIL = " LIMIT ? OFFSET ?";
 
     public static final String GET_FEEDBACK_TAGS_FROM_ID = "SELECT TAG FROM CLD_FEEDBACK_TAGS WHERE FEEDBACK_ID = ?";
 
