@@ -21,31 +21,44 @@ package org.wso2.carbon.identity.cloud.user.feedback.mgt.util;
 import org.apache.commons.lang.StringUtils;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementClientException;
-import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementRuntimeException;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementServerException;
 
 /**
- * Feedback management error handling class
+ * Feedback management error handling class.
  */
 public class FeedbackExceptionManagementUtil {
 
     /**
-     * This method can be used to generate a FeedbackManagementServerException from ConsentConstants.ErrorMessages
+     * This method can be used to generate a FeedbackManagementServerException from FeedbackMgtConstants.ErrorMessages
      * object when no exception is thrown.
      *
      * @param error FeedbackManagementConstants.ErrorMessages.
      * @param data  data to replace if message needs to be replaced.
      * @return FeedbackManagementServerException.
      */
-    public static FeedbackManagementServerException handleServerException(FeedbackMgtConstants.ErrorMessages error,
-                                                                          String data) {
+    public static FeedbackManagementServerException buildServerException(FeedbackMgtConstants.ErrorMessages error,
+                                                                         String data) {
 
         String message = includeData(error, data);
         return new FeedbackManagementServerException(message, error.getCode());
     }
 
     /**
-     * This method can be used to generate a FeedbackManagementServerException from ConsentConstants.ErrorMessages
+     * This method can be used to generate a FeedbackManagementServerException from FeedbackMgtConstants.ErrorMessages
+     * object when an exception is thrown and no data needs to be inserted to the error message.
+     *
+     * @param error FeedbackManagementConstants.ErrorMessages.
+     * @param e     Parent exception.
+     * @return FeedbackManagementServerException.
+     */
+    public static FeedbackManagementServerException buildServerException(FeedbackMgtConstants.ErrorMessages error,
+                                                                         Throwable e) {
+
+        return new FeedbackManagementServerException(error.getMessage(), error.getCode(), e);
+    }
+
+    /**
+     * This method can be used to generate a FeedbackManagementServerException from FeedbackMgtConstants.ErrorMessages
      * object when an exception is thrown.
      *
      * @param error FeedbackManagementConstants.ErrorMessages.
@@ -53,23 +66,23 @@ public class FeedbackExceptionManagementUtil {
      * @param e     Parent exception.
      * @return FeedbackManagementServerException
      */
-    public static FeedbackManagementServerException handleServerException(FeedbackMgtConstants.ErrorMessages error,
-                                                                          String data, Throwable e) {
+    public static FeedbackManagementServerException buildServerException(FeedbackMgtConstants.ErrorMessages error,
+                                                                         String data, Throwable e) {
 
         String message = includeData(error, data);
         return new FeedbackManagementServerException(message, error.getCode(), e);
     }
 
     /**
-     * This method can be used to generate a FeedbackManagementClientException from ConsentConstants.ErrorMessages
+     * This method can be used to generate a FeedbackManagementClientException from FeedbackMgtConstants.ErrorMessages
      * object when no exception is thrown.
      *
      * @param error FeedbackManagementConstants.ErrorMessages.
      * @param data  data to replace if message needs to be replaced.
      * @return FeedbackManagementClientException.
      */
-    public static FeedbackManagementClientException handleClientException(FeedbackMgtConstants.ErrorMessages error,
-                                                                          String data) {
+    public static FeedbackManagementClientException buildClientException(FeedbackMgtConstants.ErrorMessages error,
+                                                                         String data) {
 
         String message = includeData(error, data);
 
@@ -77,7 +90,21 @@ public class FeedbackExceptionManagementUtil {
     }
 
     /**
-     * This method can be used to generate a FeedbackManagementClientException from ConsentConstants.ErrorMessages
+     * This method can be used to generate a FeedbackManagementClientException from FeedbackMgtConstants.ErrorMessages
+     * object when an exception is thrown and no data needs to be inserted to the error message.
+     *
+     * @param error FeedbackManagementConstants.ErrorMessages.
+     * @param e     Parent exception.
+     * @return FeedbackManagementClientException.
+     */
+    public static FeedbackManagementClientException buildClientException(FeedbackMgtConstants.ErrorMessages error,
+                                                                         Throwable e) {
+
+        return new FeedbackManagementClientException(error.getMessage(), error.getCode(), e);
+    }
+
+    /**
+     * This method can be used to generate a FeedbackManagementClientException from FeedbackMgtConstants.ErrorMessages
      * object when an exception is thrown.
      *
      * @param error FeedbackManagementConstants.ErrorMessages.
@@ -85,48 +112,17 @@ public class FeedbackExceptionManagementUtil {
      * @param e     Parent exception.
      * @return FeedbackManagementClientException
      */
-    public static FeedbackManagementClientException handleClientException(FeedbackMgtConstants.ErrorMessages error,
-                                                                          String data, Throwable e) {
+    public static FeedbackManagementClientException buildClientException(FeedbackMgtConstants.ErrorMessages error,
+                                                                         String data, Throwable e) {
 
         String message = includeData(error, data);
         return new FeedbackManagementClientException(message, error.getCode(), e);
     }
 
     /**
-     * This method can be used to generate a FeedbackManagementRuntimeException from ConsentConstants.ErrorMessages
-     * object when an exception is thrown.
-     *
-     * @param error FeedbackManagementConstants.ErrorMessages.
-     * @param data  data to replace if message needs to be replaced.
-     * @param e     Parent exception.
-     * @return FeedbackManagementRuntimeException
-     */
-    public static FeedbackManagementRuntimeException handleRuntimeException(FeedbackMgtConstants.ErrorMessages error,
-                                                                            String data, Throwable e) {
-
-        String message = includeData(error, data);
-        return new FeedbackManagementRuntimeException(message, error.getCode(), e);
-    }
-
-    /**
-     * This method can be used to generate a FeedbackManagementRuntimeException from ConsentConstants.ErrorMessages
-     * object when an exception is thrown.
-     *
-     * @param error FeedbackManagementConstants.ErrorMessages.
-     * @param data  data to replace if message needs to be replaced.
-     * @return FeedbackManagementRuntimeException
-     */
-    public static FeedbackManagementRuntimeException handleRuntimeException(FeedbackMgtConstants.ErrorMessages error,
-                                                                            String data) {
-
-        String message = includeData(error, data);
-        return new FeedbackManagementRuntimeException(message, error.getCode());
-    }
-
-    /**
      * Include the data to the error message.
      *
-     * @param error FunctionLibraryManagementConstants.ErrorMessage.
+     * @param error FeedbackMgtConstants.ErrorMessage.
      * @param data  data to replace if message needs to be replaced.
      * @return message format with data.
      */

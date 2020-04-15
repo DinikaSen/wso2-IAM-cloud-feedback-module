@@ -18,8 +18,6 @@
 
 package org.wso2.carbon.identity.cloud.user.feedback.mgt.model;
 
-import org.apache.abdera.model.Feed;
-
 import java.util.ArrayList;
 
 /**
@@ -36,14 +34,11 @@ public class Feedback {
     private String timeCreated;
 
     public Feedback() {
-    }
 
-    // TODO : remove if not used
-    public Feedback(String uuid) {
-        this.uuid = uuid;
     }
 
     public Feedback(Integer id, String message, String email, String contactNo, String uuid, ArrayList<String> tags) {
+
         this.id = id;
         this.message = message;
         this.email = email;
@@ -53,6 +48,7 @@ public class Feedback {
     }
 
     public Feedback(Integer id, String message, String email, String contactNo, String uuid, String timeCreated) {
+
         this.id = id;
         this.message = message;
         this.email = email;
@@ -61,19 +57,43 @@ public class Feedback {
         this.timeCreated = timeCreated;
     }
 
+    /**
+     * Get feedback ID.
+     *
+     * @return Autoincrement Feedback ID in the database.
+     */
     public Integer getId() {
+
         return id;
     }
 
+    /**
+     * Set feedback ID.
+     *
+     * @param id Autoincrement Feedback ID in the database
+     */
     public void setId(Integer id) {
+
         this.id = id;
     }
 
+    /**
+     * Get feedback resource UUID.
+     *
+     * @return UUID of the feedback resource
+     */
     public String getUuid() {
+
         return uuid;
     }
 
+    /**
+     * Get feedback message.
+     *
+     * @param uuid UUID of the feedback resource
+     */
     public void setUuid(String uuid) {
+
         this.uuid = uuid;
     }
 
@@ -83,6 +103,7 @@ public class Feedback {
      * @return Feedback message
      */
     public String getMessage() {
+
         return message;
     }
 
@@ -92,6 +113,7 @@ public class Feedback {
      * @param message Feedback message
      */
     public void setMessage(String message) {
+
         this.message = message;
     }
 
@@ -101,6 +123,7 @@ public class Feedback {
      * @return Email of the user
      */
     public String getEmail() {
+
         return email;
     }
 
@@ -110,6 +133,7 @@ public class Feedback {
      * @param email Email of the user
      */
     public void setEmail(String email) {
+
         this.email = email;
     }
 
@@ -119,6 +143,7 @@ public class Feedback {
      * @return Contact number of the user
      */
     public String getContactNo() {
+
         return contactNo;
     }
 
@@ -128,32 +153,47 @@ public class Feedback {
      * @param contactNo Contact number of the user
      */
     public void setContactNo(String contactNo) {
+
         this.contactNo = contactNo;
     }
 
     /**
-     * Set the list of tags related with the feedback.
+     * Get the list of tags related to the feedback.
      *
      * @return List of tags
      */
     public ArrayList<String> getTags() {
+
         return tags;
     }
 
     /**
-     * Set the list of tags corresponding to the feedback.
+     * Set the list of tags related to the feedback.
      *
      * @param tags List of tags
      */
     public void setTags(ArrayList<String> tags) {
+
         this.tags = tags;
     }
 
+    /**
+     * Get the time that the feedback was created.
+     *
+     * @return Timestamp as a string
+     */
     public String getTimeCreated() {
+
         return timeCreated;
     }
 
+    /**
+     * Set the time that the feedback was created.
+     *
+     * @param timeCreated Timestamp as a string
+     */
     public void setTimeCreated(String timeCreated) {
+
         this.timeCreated = timeCreated;
     }
 }

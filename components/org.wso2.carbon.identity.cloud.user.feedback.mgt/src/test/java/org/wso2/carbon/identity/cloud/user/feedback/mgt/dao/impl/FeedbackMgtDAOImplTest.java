@@ -28,6 +28,7 @@ import org.testng.IObjectFactory;
 import org.testng.annotations.*;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.dao.FeedbackMgtDAO;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementClientException;
+import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementServerException;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.internal.FeedbackManagementServiceDataHolder;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
 import org.wso2.carbon.identity.testutil.powermock.PowerMockIdentityBaseTest;
@@ -146,7 +147,8 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
                 // String filter, int resultCount
                 {"email eq kim@abc.com", 2},
                 {"EMAIL EQ kim@abc.com", 2},
-                {"email eq *", 3}
+                {"", 3},
+                {null, 3}
         };
     }
 
@@ -157,9 +159,7 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
                 // String filter
                 {"someString ew someString"},
                 {"email someString someString"},
-                {"someString"},
-                {""},
-                {null}
+                {"someString"}
         };
     }
 
@@ -172,6 +172,7 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
                         "Updated tag 2", "Updated tag3"))}
         };
     }
+
 
     @Test
     public void testAddFeedback() throws Exception {
@@ -305,9 +306,9 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
         }
     }
 
-    @Test(dataProvider = "feedbackListCountInvalidDataProvider")
-    public void testListCountWithException(String filter, int resultCount)
-            throws Exception {
+    @Test(expectedExceptions = FeedbackManagementClientException.class, dataProvider =
+            "feedbackListCountInvalidDataProvider")
+    public void testListCountWithException(String filter) throws Exception {
 
         DataSource dataSource = mock(DataSource.class);
         mockServiceDataHolder(dataSource);

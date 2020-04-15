@@ -18,7 +18,6 @@
 
 package org.wso2.carbon.identity.cloud.user.feedback.mgt.exception;
 
-
 /**
  * User Feedback Manager Client Exception.
  */

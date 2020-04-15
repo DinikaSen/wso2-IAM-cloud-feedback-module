@@ -18,29 +18,19 @@
 
 package org.wso2.carbon.identity.cloud.user.feedback.mgt;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.dao.FeedbackMgtDAO;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.dao.impl.FeedbackMgtDAOImpl;
-import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementClientException;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementException;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
-import org.wso2.carbon.identity.cloud.user.feedback.mgt.util.FeedbackConfigParser;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.util.FeedbackExceptionManagementUtil;
 
-import javax.ws.rs.core.Response;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.AttributeOperators.sw;
-import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.ErrorMessages.*;
-import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.FEEDBACK_SEARCH_LIMIT_PATH;
 
 /**
  * Feedback management service implementation.
@@ -49,7 +39,6 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
     private static final Log log = LogFactory.getLog(FeedbackManagementServiceImpl.class);
     private static FeedbackManagementServiceImpl feedbackMgtService = new FeedbackManagementServiceImpl();
-
 
     /**
      * Private constructor which will not allow to create objects of this class from outside.
@@ -70,8 +59,9 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
     @Override
     public Feedback createFeedbackEntry(Feedback userFeedback) throws FeedbackManagementException {
-        validateInputParameters(userFeedback);
+
         userFeedback.setUuid(UUID.randomUUID().toString());
+        validateInputParameters(userFeedback);
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback feedbackResult = feedbackMgtDAO.insertFeedbackEntry(userFeedback);
         return feedbackResult;
@@ -80,6 +70,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
     @Override
     public List<Feedback> listFeedbackEntries(String filter, int limit, int offset, String sortBy,
                                               String sortOrder) throws FeedbackManagementException {
+
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         List<Feedback> feedbackResults = feedbackMgtDAO.listFeedbackEntries(filter, limit, offset, sortBy, sortOrder);
         return feedbackResults;
@@ -87,6 +78,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
     @Override
     public Feedback getFeedbackEntry(String feedbackID) throws FeedbackManagementException {
+
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback feedbackResult = feedbackMgtDAO.getFeedbackEntry(feedbackID);
         return feedbackResult;
@@ -94,6 +86,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
     @Override
     public void deleteFeedbackEntry(String feedbackID) throws FeedbackManagementException {
+
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         String deletedId = feedbackMgtDAO.deleteFeedbackEntry(feedbackID);
         if (log.isDebugEnabled()) {
@@ -103,6 +96,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
     @Override
     public Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry) throws FeedbackManagementException {
+
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback updatedFeedback = feedbackMgtDAO.updateFeedbackEntry(feedbackID, feedbackEntry);
         if (log.isDebugEnabled()) {
@@ -115,25 +109,28 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
     public Integer getCountOfFeedbackResults(String filter) throws FeedbackManagementException {
 
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
-        //Integer resultCount = feedbackMgtDAO.countListResults(filterAttribute, filterValue);
         Integer resultCount = feedbackMgtDAO.countListResults(filter);
+        if (log.isDebugEnabled()) {
+            log.debug("Feedback count for given filter : " + resultCount);
+        }
         return resultCount;
     }
 
-/*    @Override
-    public boolean isFeedbackAvailable(String feedbackID) throws FeedbackManagementException {
-
-        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
-        return feedbackMgtDAO.isFeedbackAvailable(feedbackID);
-    }*/
-
+    /**
+     * Validate whether message is available in the feedback object.
+     *
+     * @param feedback Feedback object
+     * @throws FeedbackManagementException
+     */
     private void validateInputParameters(Feedback feedback) throws FeedbackManagementException {
 
         if (feedback.getMessage() == null | isBlank(feedback.getMessage())) {
             if (log.isDebugEnabled()) {
                 log.debug("Feedback message cannot be empty");
             }
-            throw FeedbackExceptionManagementUtil.handleClientException(ERROR_CODE_FEEDBACK_MESSAGE_REQUIRED, null);
+            throw FeedbackExceptionManagementUtil
+                    .buildClientException(FeedbackMgtConstants.ErrorMessages.ERROR_CODE_FEEDBACK_MESSAGE_REQUIRED,
+                            feedback.getUuid());
         }
 
         if (log.isDebugEnabled()) {

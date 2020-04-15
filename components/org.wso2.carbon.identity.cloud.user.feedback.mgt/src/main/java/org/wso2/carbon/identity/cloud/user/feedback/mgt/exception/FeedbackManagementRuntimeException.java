@@ -19,7 +19,7 @@
 package org.wso2.carbon.identity.cloud.user.feedback.mgt.exception;
 
 /**
- * User Feedback Manager Runtime Exception
+ * User Feedback Manager Runtime Exception.
  */
 public class FeedbackManagementRuntimeException extends RuntimeException {
 

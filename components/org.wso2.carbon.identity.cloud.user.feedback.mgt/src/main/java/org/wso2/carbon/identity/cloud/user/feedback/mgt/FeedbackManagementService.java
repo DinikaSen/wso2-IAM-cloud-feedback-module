@@ -34,57 +34,54 @@ public interface FeedbackManagementService {
      * @param userFeedback User feedback
      * @throws FeedbackManagementException
      */
-    Feedback createFeedbackEntry(Feedback userFeedback)
-            throws FeedbackManagementException;
+    Feedback createFeedbackEntry(Feedback userFeedback) throws FeedbackManagementException;
 
     /**
-     * Retrieve user feedbacks according to the specified conditions.
+     * Retrieve list of user feedback according to the specified conditions.
      *
-     * @param condition filter condition
+     * @param filter    filter condition
+     * @param limit     max entries in list
+     * @param offset    entries to skip
+     * @param sortBy    how to sort the list
+     * @param sortOrder order of sorting (ASC/DESC)
      * @return A list of user feedback entries
      * @throws FeedbackManagementException
      */
-    List<Feedback> listFeedbackEntries(String filter, int limit, int offset, String sortBy,
-                                       String sortOrder)
+    List<Feedback> listFeedbackEntries(String filter, int limit, int offset, String sortBy, String sortOrder)
             throws FeedbackManagementException;
 
     /**
      * Retrieve a feedback entry.
      *
-     * @param feedbackID ID of a feedback entry
+     * @param feedbackID Resource ID
      * @return Feedback entry
      * @throws FeedbackManagementException
      */
-    Feedback getFeedbackEntry(String feedbackID)
-            throws FeedbackManagementException;
+    Feedback getFeedbackEntry(String feedbackID) throws FeedbackManagementException;
 
     /**
      * Delete a feedback entry using the feedback ID.
      *
-     * @param feedbackID ID of the feedback entry
+     * @param feedbackID Resource ID
      * @throws FeedbackManagementException
      */
-    void deleteFeedbackEntry(String feedbackID)
-            throws FeedbackManagementException;
+    void deleteFeedbackEntry(String feedbackID) throws FeedbackManagementException;
 
     /**
-     * Update a feedback entry.
+     * Update a feedback entry. using the Feedback ID
      *
-     * @param feedbackID Previous name of the function library
-     * @param feedbackEntry Feedback object with new details
+     * @param feedbackID    Resource ID
+     * @param feedbackEntry Feedback object with updated details
      * @throws FeedbackManagementException
      */
-    Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry)
-            throws FeedbackManagementException;
+    Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry) throws FeedbackManagementException;
 
     /**
-/*     * Check the existence of a feedback entry.
+     * Get the count of Feedback entries that match the given condition.
      *
-     * @param feedbackID Feedback entry ID.
-     * @return Feedback entry existence
+     * @param filter Condition to filter records
+     * @return Number of matching entries
      * @throws FeedbackManagementException
-     *//*
-    // boolean isFeedbackAvailable(String feedbackID) throws FeedbackManagementException;*/
-
+     */
     Integer getCountOfFeedbackResults(String filter) throws FeedbackManagementException;
 }

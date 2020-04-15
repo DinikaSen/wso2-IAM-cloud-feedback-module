@@ -29,10 +29,18 @@ import org.wso2.carbon.utils.ServerConstants;
 import org.wso2.securevault.SecretResolver;
 import org.wso2.securevault.SecretResolverFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Stack;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
-import java.io.*;
-import java.util.*;
 
 import static org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.ErrorMessages.ERROR_CODE_BUILDING_CONFIG;
 
@@ -58,6 +66,7 @@ public class FeedbackConfigParser {
     }
 
     public String getFeedbackDataSource() {
+
         String dataSource = configuration.get(DATA_SOURCE_NAME).toString();
         System.out.println(dataSource);
         return configuration.get(DATA_SOURCE_NAME) == null ? null : configuration.get(DATA_SOURCE_NAME).toString();

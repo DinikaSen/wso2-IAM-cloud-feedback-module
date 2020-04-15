@@ -23,7 +23,6 @@ package org.wso2.carbon.identity.cloud.user.feedback.mgt.exception;
  */
 public class FeedbackManagementException extends Exception {
 
-    //private String message;
     private String errorCode = null;
 
     public FeedbackManagementException() {

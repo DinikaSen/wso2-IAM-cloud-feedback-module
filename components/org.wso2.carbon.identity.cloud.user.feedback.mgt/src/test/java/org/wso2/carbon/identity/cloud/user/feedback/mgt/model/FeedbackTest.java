@@ -39,16 +39,19 @@ public class FeedbackTest {
         ArrayList<String > tags = new ArrayList<>(Arrays.asList("tag1", "tag2", "tag3"));
 
         Feedback feedback = new Feedback(id, message, email, contactNo, uuid, timeCreated);
-
         Assert.assertEquals(feedback.getMessage(), message);
         Assert.assertEquals(feedback.getEmail(), email);
         Assert.assertEquals(feedback.getContactNo(), contactNo);
         Assert.assertEquals(feedback.getUuid(), uuid);
         Assert.assertEquals(feedback.getTimeCreated(), timeCreated);
 
-        feedback = new Feedback(uuid);
-
+        feedback = new Feedback(id, message, email, contactNo, uuid, tags);
+        Assert.assertEquals(feedback.getId(), id);
+        Assert.assertEquals(feedback.getMessage(), message);
+        Assert.assertEquals(feedback.getEmail(), email);
+        Assert.assertEquals(feedback.getContactNo(), contactNo);
         Assert.assertEquals(feedback.getUuid(), uuid);
+        Assert.assertEquals(feedback.getTags(), tags);
 
         feedback = new Feedback();
         feedback.setId(id);
@@ -58,7 +61,6 @@ public class FeedbackTest {
         feedback.setUuid(uuid);
         feedback.setTimeCreated(timeCreated);
         feedback.setTags(tags);
-
         Assert.assertEquals(feedback.getId(), id);
         Assert.assertEquals(feedback.getMessage(), message);
         Assert.assertEquals(feedback.getEmail(), email);
@@ -66,5 +68,6 @@ public class FeedbackTest {
         Assert.assertEquals(feedback.getUuid(), uuid);
         Assert.assertEquals(feedback.getTimeCreated(), timeCreated);
         Assert.assertEquals(feedback.getTags(), tags);
+
     }
 }

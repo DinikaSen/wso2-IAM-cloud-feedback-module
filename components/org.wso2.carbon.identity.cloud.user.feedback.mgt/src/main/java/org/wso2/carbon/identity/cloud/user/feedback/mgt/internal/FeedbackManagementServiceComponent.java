@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.cloud.user.feedback.mgt.FeedbackManagementServic
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementRuntimeException;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.util.FeedbackConfigParser;
-import org.wso2.carbon.identity.cloud.user.feedback.mgt.util.FeedbackDBInitializer;
 import org.wso2.carbon.user.core.service.RealmService;
 
 import javax.naming.Context;
@@ -59,12 +58,8 @@ public class FeedbackManagementServiceComponent {
         FeedbackConfigParser configParser = new FeedbackConfigParser();
         DataSource dataSource = initDataSource(configParser);
 
-        //TODO: Clarify of this is needed
-        initializeFeedbackDB(dataSource);
-
         setDataSourceToDataHolder(dataSource);
 
-        // Registering user feedback management service as an OSGIService.
         serviceRegistration = bundleContext.registerService(FeedbackManagementService.class,
                 FeedbackManagementServiceImpl.getInstance(), null);
         if (log.isDebugEnabled()) {
@@ -79,7 +74,7 @@ public class FeedbackManagementServiceComponent {
         if (log.isDebugEnabled()) {
             log.debug("Function Library Management bundle is deactivated.");
         }
-        // Unregistering Function library management service.
+
         if (serviceRegistration != null) {
             serviceRegistration.unregister();
         }
@@ -100,7 +95,6 @@ public class FeedbackManagementServiceComponent {
 
             return dataSource;
         } catch (NamingException e) {
-            e.printStackTrace();
             throw new FeedbackManagementRuntimeException(FeedbackMgtConstants.ErrorMessages
                     .ERROR_CODE_DATABASE_INITIALIZATION.getMessage(),
                     FeedbackMgtConstants.ErrorMessages
@@ -129,18 +123,6 @@ public class FeedbackManagementServiceComponent {
             log.debug("RealmService is unregistered in ConsentManager service.");
         }
         this.realmService = null;
-    }
-
-    private void initializeFeedbackDB(DataSource dataSource) {
-        if (System.getProperty("setup") == null) {
-            if (log.isDebugEnabled()) {
-                log.debug("Feedback Database schema initialization check was skipped since " +
-                        "\'setup\' variable was not given during startup");
-            }
-        } else {
-            FeedbackDBInitializer dbInitializer = new FeedbackDBInitializer(dataSource);
-            dbInitializer.createFeedbackDatabase();
-        }
     }
 
     private void setDataSourceToDataHolder(DataSource dataSource) {

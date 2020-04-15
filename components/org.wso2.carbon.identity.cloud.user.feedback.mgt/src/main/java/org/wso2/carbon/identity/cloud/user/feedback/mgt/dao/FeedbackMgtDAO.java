@@ -24,13 +24,12 @@ import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
 import java.util.List;
 
 /**
- * This interface access the data storage layer to store, update, retrieve and delete user feedback entries.
+ * This interface accesses the data storage layer to store, update, retrieve and delete user feedback entries.
  */
 public interface FeedbackMgtDAO {
 
-    // TODO: Implement insertTags
     /**
-     * Add a a feedback entry.
+     * Add a feedback entry.
      *
      * @param userFeedback User feedback
      * @throws FeedbackManagementException
@@ -40,18 +39,21 @@ public interface FeedbackMgtDAO {
     /**
      * Retrieve a list of user feedback entries according to the specified conditions.
      *
-     * @param count Limit
-     * @param startIndex Offset
+     * @param filter    filter condition
+     * @param limit     max entries in list
+     * @param offset    entries to skip
+     * @param sortBy    how to sort the list
+     * @param sortOrder order of sorting (ASC/DESC)
      * @return A list of user feedback entries
      * @throws FeedbackManagementException
      */
-    List<Feedback> listFeedbackEntries(String filter, int limit, int offset, String sortBy,
-                                       String sortOrder) throws FeedbackManagementException;
+    List<Feedback> listFeedbackEntries(String filter, int limit, int offset, String sortBy, String sortOrder)
+            throws FeedbackManagementException;
 
     /**
      * Retrieve a feedback entry.
      *
-     * @param feedbackID ID of a feedback entry
+     * @param feedbackID Resource ID
      * @return Feedback entry
      * @throws FeedbackManagementException
      */
@@ -60,29 +62,27 @@ public interface FeedbackMgtDAO {
     /**
      * Delete a feedback entry using the feedback ID.
      *
-     * @param feedbackID ID of the feedback entry
+     * @param feedbackID Resource ID
+     * @return Resource ID of the feedback deleted
      * @throws FeedbackManagementException
      */
     String deleteFeedbackEntry(String feedbackID) throws FeedbackManagementException;
 
     /**
-     * Update a feedback entry.
+     * Update a feedback entry. using the Feedback ID
      *
-     * @param feedbackID    Previous name of the function library
-     * @param feedbackEntry Feedback object with new details
+     * @param feedbackID    Resource ID
+     * @param feedbackEntry Feedback object with updated details
      * @throws FeedbackManagementException
      */
     Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry) throws FeedbackManagementException;
 
-
     /**
-     * Check existence of a feedback.
+     * Get the count of Feedback entries that match the given condition.
      *
-     * @param feedbackID    Previous name of the function library
-     * @return  isAvailable Existence of the feedback defined by the id.
+     * @param filter Condition to filter records
+     * @return Number of matching entries
      * @throws FeedbackManagementException
      */
-   // boolean isFeedbackAvailable(String feedbackID) throws FeedbackManagementException;
-
-   Integer countListResults(String filter) throws FeedbackManagementException;
+    Integer countListResults(String filter) throws FeedbackManagementException;
 }
