@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Stack;
+
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 
@@ -68,7 +69,6 @@ public class FeedbackConfigParser {
     public String getFeedbackDataSource() {
 
         String dataSource = configuration.get(DATA_SOURCE_NAME).toString();
-        System.out.println(dataSource);
         return configuration.get(DATA_SOURCE_NAME) == null ? null : configuration.get(DATA_SOURCE_NAME).toString();
     }
 

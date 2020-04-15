@@ -39,6 +39,9 @@ public class FeedbackMgtConstants {
     public static final String DEFAULT_SORT_BY = "ID ";
     public static final String DEFAULT_SORT_ORDER = "ASC";
 
+    /**
+     * Error messages.
+     */
     public enum ErrorMessages {
 
         ERROR_CODE_DATABASE_INITIALIZATION("FM-00001", "Error while initializing the feedback " +
@@ -109,18 +112,30 @@ public class FeedbackMgtConstants {
         }
     }
 
+    /**
+     * Allowed filter operations.
+     */
     public enum AttributeOperators {
         co, eq, ew, sw
     }
 
+    /**
+     * Filterable attributes.
+     */
     public enum FilterableAttributes {
         email, tag
     }
 
+    /**
+     * Allowed sorting orders.
+     */
     public enum SortOrderOperators {
         asc, desc
     }
 
+    /**
+     * Sortable attributes.
+     */
     public enum SortableAttributes {
         time_created
     }

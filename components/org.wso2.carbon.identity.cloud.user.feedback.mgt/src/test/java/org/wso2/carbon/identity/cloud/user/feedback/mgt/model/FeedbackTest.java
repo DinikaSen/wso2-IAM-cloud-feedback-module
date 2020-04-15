@@ -36,7 +36,7 @@ public class FeedbackTest {
         String contactNo = "0123456789";
         String uuid = UUID.randomUUID().toString();
         String timeCreated = "2020-01-01 10:00:00";
-        ArrayList<String > tags = new ArrayList<>(Arrays.asList("tag1", "tag2", "tag3"));
+        ArrayList<String> tags = new ArrayList<>(Arrays.asList("tag1", "tag2", "tag3"));
 
         Feedback feedback = new Feedback(id, message, email, contactNo, uuid, timeCreated);
         Assert.assertEquals(feedback.getMessage(), message);

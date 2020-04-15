@@ -34,16 +34,6 @@
     <version>1.0-SNAPSHOT</version>
 
     <name>WSO2 Identity Server - Cloud Feedback Management Module</name>
-    <description>
-
-    </description>
-
-    <!--<scm>
-        <url>https://github.com/wso2-extensions/identity-local-auth-fido.git</url>
-        <developerConnection>scm:git:https://github.com/wso2-extensions/identity-local-auth-fido.git</developerConnection>
-        <connection>scm:git:https://github.com/wso2-extensions/identity-local-auth-fido.git</connection>
-        <tag>HEAD</tag>
-    </scm>-->
 
     <modules>
         <module>components/org.wso2.carbon.identity.cloud.user.feedback.mgt</module>
@@ -86,11 +76,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.wso2.eclipse.osgi</groupId>
-                <artifactId>org.eclipse.osgi.services</artifactId>
-                <version>${eclipse.osgi.version}</version>
-            </dependency>
             <dependency>
                 <groupId>org.wso2.carbon</groupId>
                 <artifactId>org.wso2.carbon.core</artifactId>
@@ -164,13 +149,6 @@
                 <version>${apache.httpclient.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.wso2.carbon.identity.framework</groupId>
-                <artifactId>org.wso2.carbon.identity.testutil</artifactId>
-                <version>${org.wso2.carbon.identity.testutil.version}</version>
-                <scope>test</scope>
-            </dependency>
-
-            <dependency>
                 <groupId>org.json.wso2</groupId>
                 <artifactId>json</artifactId>
                 <version>${org.json.wso2.version}</version>
@@ -236,22 +214,10 @@
                 <artifactId>javax.ws.rs-api</artifactId>
                 <version>${javax.ws.rs-api.version}</version>
             </dependency>
-
-
             <dependency>
                 <groupId>org.wso2.eclipse.osgi</groupId>
                 <artifactId>org.eclipse.osgi.services</artifactId>
-                <version>${equinox.osgi.services.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>org.apache.felix.scr.ds-annotations</artifactId>
-                <version>${apache.felix.scr.ds.annotations.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.wso2.carbon.utils</groupId>
-                <artifactId>org.wso2.carbon.database.utils</artifactId>
-                <version>${org.wso2.carbon.database.utils.version}</version>
+                <version>${eclipse.osgi.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -403,7 +369,7 @@
                         </goals>
                         <configuration>
                             <!--This parameter disables doclint-->
-<!--                            <doclint>none</doclint>-->
+                            <!--<doclint>none</doclint>-->
                         </configuration>
                     </execution>
                 </executions>
@@ -445,17 +411,16 @@
         <osgi.service.component.imp.pkg.version.range>[1.2.0, 2.0.0)</osgi.service.component.imp.pkg.version.range>
         <commons-lang.wso2.osgi.version.range>[2.6.0,3.0.0)</commons-lang.wso2.osgi.version.range>
         <import.package.version.commons.logging>[1.2.0,2.0.0)</import.package.version.commons.logging>
+        <org.wso2.carbon.database.utils.version>2.0.9</org.wso2.carbon.database.utils.version>
+        <com.google.code.gson.osgi.version.range>[2.3.1,3.0.0)</com.google.code.gson.osgi.version.range>
 
         <!-- Test Dependency Versions -->
-        <org.wso2.carbon.identity.testutil.version>5.10.0</org.wso2.carbon.identity.testutil.version>
         <testng.version>6.14.3</testng.version>
         <powermock.version>1.7.4</powermock.version>
         <jacoco.version>0.8.3</jacoco.version>
         <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
         <orbit.version.h2.engine>1.2.140.wso2v3</orbit.version.h2.engine>
         <pax.logging.api.version>1.10.1</pax.logging.api.version>
-        <org.wso2.carbon.database.utils.version>2.0.9</org.wso2.carbon.database.utils.version>
-        <com.google.code.gson.osgi.version.range>[2.3.1,3.0.0)</com.google.code.gson.osgi.version.range>
         <maven.checkstyleplugin.version>3.1.0</maven.checkstyleplugin.version>
         <maven.findbugsplugin.version>3.0.5</maven.findbugsplugin.version>
     </properties>

@@ -30,8 +30,6 @@ import org.wso2.carbon.identity.cloud.user.feedback.mgt.util.FeedbackExceptionMa
 import java.util.List;
 import java.util.UUID;
 
-import static org.apache.commons.lang.StringUtils.isBlank;
-
 /**
  * Feedback management service implementation.
  */
@@ -64,6 +62,9 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
         validateInputParameters(userFeedback);
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback feedbackResult = feedbackMgtDAO.insertFeedbackEntry(userFeedback);
+        if (log.isDebugEnabled()) {
+            log.debug("Feedback entry added successfully. ID: " + feedbackResult.getUuid());
+        }
         return feedbackResult;
     }
 
@@ -73,6 +74,9 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         List<Feedback> feedbackResults = feedbackMgtDAO.listFeedbackEntries(filter, limit, offset, sortBy, sortOrder);
+        if (log.isDebugEnabled()) {
+            log.debug("Feedback list retrieved successfully.");
+        }
         return feedbackResults;
     }
 
@@ -81,6 +85,9 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
         FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback feedbackResult = feedbackMgtDAO.getFeedbackEntry(feedbackID);
+        if (log.isDebugEnabled()) {
+            log.debug("Feedback entry retrieved successfully. ID: " + feedbackResult.getUuid());
+        }
         return feedbackResult;
     }
 
@@ -124,7 +131,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
      */
     private void validateInputParameters(Feedback feedback) throws FeedbackManagementException {
 
-        if (feedback.getMessage() == null | isBlank(feedback.getMessage())) {
+        if (feedback.getMessage() == null || feedback.getMessage().isEmpty()) {
             if (log.isDebugEnabled()) {
                 log.debug("Feedback message cannot be empty");
             }
@@ -134,7 +141,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("Feedback submission request validation success");
+            log.debug("Feedback submission request validated successfully");
         }
     }
 
