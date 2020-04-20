@@ -57,14 +57,16 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
         initiateH2Base();
 
         Feedback feedback1 = new Feedback(1, "Sample message 1", "kim@abc.com", "0112222222",
-                UUID.randomUUID().toString(), new ArrayList<>(Arrays.asList("issue", "report a bug")));
+                UUID.randomUUID().toString(), 1, UUID.randomUUID().toString(),
+                new ArrayList<>(Arrays.asList("issue", "report a bug", "improve")));
 
-        Feedback feedback2 = new Feedback(2, "Sample message 2", "alex@wso2.com",
-                "0113333333", UUID.randomUUID().toString(),
-                new ArrayList<>(Arrays.asList("bug report", "needs improvement")));
+        Feedback feedback2 = new Feedback(2, "Sample message 2", "alex@wso2.com", "0113333333",
+                UUID.randomUUID().toString(), 2, UUID.randomUUID().toString(),
+                new ArrayList<>(Arrays.asList("bug report", "needs improvement", "issue")));
 
         Feedback feedback3 = new Feedback(3, "Sample message 3", "kim@abc.com", "0114444444",
-                UUID.randomUUID().toString(), new ArrayList<>(Arrays.asList("improve", "suggestion", "complement")));
+                UUID.randomUUID().toString(), 1, UUID.randomUUID().toString(),
+                new ArrayList<>(Arrays.asList("improve", "suggestion", "complement", "issue")));
 
         feedbackEntries.add(feedback1);
         feedbackEntries.add(feedback2);
@@ -90,8 +92,8 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
                 {"email ew wso2.com", 5, 0, "time_created", "asc", 1},
                 {"EMAIL EW wso2.com", 5, 0, "TIME_CREATED", "ASC", 1},
                 {"tag eq suggestion", 5, 0, "time_created", "asc", 1},
-                {"tag co improve", 5, 0, "time_created", "asc", 2},
-                {"tag sw improve", 5, 0, "time_created", "asc", 1},
+                {"tag co improve", 5, 0, "time_created", "asc", 3},
+                {"tag sw improve", 5, 0, "time_created", "asc", 2},
                 {"tag ew bug", 5, 0, "time_created", "asc", 1},
                 {null, 5, 0, "time_created", "asc", 3},
 
@@ -181,7 +183,8 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
 
         try (Connection connection = getConnection()) {
 
-            when(dataSource.getConnection()).thenReturn(connection);
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
 
             FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
             Feedback feedbackResult = feedbackMgtDAO.insertFeedbackEntry(feedbackEntries.get(0));
@@ -189,9 +192,10 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
             Assert.assertEquals(feedbackResult.getMessage(), feedbackEntries.get(0).getMessage());
             Assert.assertEquals(feedbackResult.getEmail(), feedbackEntries.get(0).getEmail());
             Assert.assertEquals(feedbackResult.getContactNo(), feedbackEntries.get(0).getContactNo());
+            Assert.assertEquals(feedbackResult.getUserId(), feedbackEntries.get(0).getUserId());
+            Assert.assertEquals(feedbackResult.getTenantId(), feedbackEntries.get(0).getTenantId());
             Assert.assertEquals(feedbackResult.getUuid(), feedbackEntries.get(0).getUuid());
             Assert.assertEquals(feedbackResult.getTags(), feedbackEntries.get(0).getTags());
-
         }
     }
 
@@ -429,6 +433,45 @@ public class FeedbackMgtDAOImplTest extends PowerMockTestCase {
             feedbackMgtDAO.updateFeedbackEntry("000", new Feedback());
 
             Assert.fail("Expected: " + FeedbackManagementClientException.class.getName());
+        }
+    }
+
+    @Test
+    public void testIfFeedbackExistsById() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockServiceDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
+            Feedback feedback = feedbackMgtDAO.insertFeedbackEntry(feedbackEntries.get(0));
+            Assert.assertEquals(feedback.getUuid(), feedbackEntries.get(0).getUuid());
+
+            Integer resultId = feedbackMgtDAO.checkIfFeedbackExists(feedback.getUuid());
+
+            Assert.assertNotNull(resultId);
+        }
+    }
+
+    @Test
+    public void testIfFeedbackExistsByInvalidId() throws Exception {
+
+        DataSource dataSource = mock(DataSource.class);
+        mockServiceDataHolder(dataSource);
+
+        try (Connection connection = getConnection()) {
+
+            Connection spyConnection = spyConnection(connection);
+            when(dataSource.getConnection()).thenReturn(spyConnection);
+
+            FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
+            Integer resultId = feedbackMgtDAO.checkIfFeedbackExists("000");
+
+            Assert.assertNull(resultId);
         }
     }
 }

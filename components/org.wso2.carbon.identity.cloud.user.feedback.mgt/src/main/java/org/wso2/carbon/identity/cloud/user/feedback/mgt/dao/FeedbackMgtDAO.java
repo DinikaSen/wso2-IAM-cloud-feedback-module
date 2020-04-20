@@ -85,4 +85,13 @@ public interface FeedbackMgtDAO {
      * @throws FeedbackManagementException
      */
     Integer countListResults(String filter) throws FeedbackManagementException;
+
+    /**
+     * Check if a feedback exists in the db for the given Id.
+     *
+     * @param feedbackId    Resource ID
+     * @return true if feedback exists by the given Id
+     * @throws FeedbackManagementException
+     */
+    Integer checkIfFeedbackExists(String feedbackId) throws FeedbackManagementException;
 }

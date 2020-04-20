@@ -77,14 +77,18 @@ public class FeedbackMgtConstants {
                 "the ID: %s."),
         ERROR_CODE_GET_COUNT_WITH_FILTER("FM-15006", "Error occurred while getting count of feedback " +
                 "matching the filter %s."),
-        ERROR_CODE_ADD_USER_FEEDBACK_TAGS("FM-15007", "Error occurred while adding the user feedback " +
-                "tags to the DB"),
+        ERROR_CODE_ADD_FEEDBACK_TAG_MAPPINGS("FM-15007", "Error occurred while adding the user feedback " +
+                "tag mappings to the DB"),
         ERROR_CODE_LIST_FEEDBACK_TAGS("FM-15008", "Error occurred while retrieving feedback tags " +
                 "from DB"),
         ERROR_CODE_DELETE_FEEDBACK_TAGS("FM-15009", "Error occurred while deleting feedback tags from " +
                 "DB for the ID: %s."),
         ERROR_CODE_GET_COUNT_WITHOUT_FILTER("FM-15010", "Error occurred while getting count of " +
-                "feedback from the DB");
+                "feedback from the DB"),
+        ERROR_CODE_ADD_FEEDBACK_TAG("FM-15011", "Error occurred while adding the tag to the tag: %s " +
+                "to the database"),
+        ERROR_CODE_GET_FEEDBACK_TAG("FM-15012", "Error occurred while retrieving the id of the tag: %s " +
+                                            "from the database");
 
         private final String code;
         private final String message;

@@ -29,6 +29,8 @@ public class Feedback {
     private String message;
     private String email;
     private String contactNo;
+    private String userId;
+    private int tenantId;
     private ArrayList<String> tags;
     private String uuid;
     private String timeCreated;
@@ -37,22 +39,28 @@ public class Feedback {
 
     }
 
-    public Feedback(Integer id, String message, String email, String contactNo, String uuid, ArrayList<String> tags) {
+    public Feedback(Integer id, String message, String email, String contactNo, String userId, int tenantId,
+                    String uuid, ArrayList<String> tags) {
 
         this.id = id;
         this.message = message;
         this.email = email;
         this.contactNo = contactNo;
+        this.userId = userId;
+        this.tenantId = tenantId;
         this.uuid = uuid;
         this.tags = tags;
     }
 
-    public Feedback(Integer id, String message, String email, String contactNo, String uuid, String timeCreated) {
+    public Feedback(Integer id, String message, String email, String contactNo, String userId, int tenantId,
+                    String uuid, String timeCreated) {
 
         this.id = id;
         this.message = message;
         this.email = email;
         this.contactNo = contactNo;
+        this.userId = userId;
+        this.tenantId = tenantId;
         this.uuid = uuid;
         this.timeCreated = timeCreated;
     }
@@ -195,5 +203,45 @@ public class Feedback {
     public void setTimeCreated(String timeCreated) {
 
         this.timeCreated = timeCreated;
+    }
+
+    /**
+     * Get the unique id of the user that submitted the feedback.
+     *
+     * @return  userId
+     */
+    public String getUserId() {
+
+        return userId;
+    }
+
+    /**
+     * Set the unique id of the user that submitted the feedback.
+     *
+     * @param userId unique id of the user
+     */
+    public void setUserId(String userId) {
+
+        this.userId = userId;
+    }
+
+    /**
+     * tenant domain of the user that submitted the feedback.
+     *
+     * @return  tenant domain name
+     */
+    public int getTenantId() {
+
+        return tenantId;
+    }
+
+    /**
+     * Set the tenant domain ID of the user that submitted the feedback.
+     *
+     * @param tenantId ID of the tenant domain of the user
+     */
+    public void setTenantId(int tenantId) {
+
+        this.tenantId = tenantId;
     }
 }

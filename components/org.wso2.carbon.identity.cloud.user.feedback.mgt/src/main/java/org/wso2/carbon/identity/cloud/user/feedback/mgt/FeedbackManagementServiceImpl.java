@@ -37,6 +37,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
     private static final Log log = LogFactory.getLog(FeedbackManagementServiceImpl.class);
     private static FeedbackManagementServiceImpl feedbackMgtService = new FeedbackManagementServiceImpl();
+    private FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
 
     /**
      * Private constructor which will not allow to create objects of this class from outside.
@@ -60,7 +61,6 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
 
         userFeedback.setUuid(UUID.randomUUID().toString());
         validateInputParameters(userFeedback);
-        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback feedbackResult = feedbackMgtDAO.insertFeedbackEntry(userFeedback);
         if (log.isDebugEnabled()) {
             log.debug("Feedback entry added successfully. ID: " + feedbackResult.getUuid());
@@ -72,7 +72,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
     public List<Feedback> listFeedbackEntries(String filter, int limit, int offset, String sortBy,
                                               String sortOrder) throws FeedbackManagementException {
 
-        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
+        //FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         List<Feedback> feedbackResults = feedbackMgtDAO.listFeedbackEntries(filter, limit, offset, sortBy, sortOrder);
         if (log.isDebugEnabled()) {
             log.debug("Feedback list retrieved successfully.");
@@ -83,7 +83,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
     @Override
     public Feedback getFeedbackEntry(String feedbackID) throws FeedbackManagementException {
 
-        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
+        //FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback feedbackResult = feedbackMgtDAO.getFeedbackEntry(feedbackID);
         if (log.isDebugEnabled()) {
             log.debug("Feedback entry retrieved successfully. ID: " + feedbackResult.getUuid());
@@ -94,7 +94,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
     @Override
     public void deleteFeedbackEntry(String feedbackID) throws FeedbackManagementException {
 
-        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
+        //FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         String deletedId = feedbackMgtDAO.deleteFeedbackEntry(feedbackID);
         if (log.isDebugEnabled()) {
             log.debug("Feedback entry deleted successfully. ID: " + deletedId);
@@ -104,7 +104,7 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
     @Override
     public Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry) throws FeedbackManagementException {
 
-        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
+        //FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Feedback updatedFeedback = feedbackMgtDAO.updateFeedbackEntry(feedbackID, feedbackEntry);
         if (log.isDebugEnabled()) {
             log.debug("Feedback entry updated successfully. ID: " + updatedFeedback.getUuid());
@@ -115,12 +115,22 @@ public class FeedbackManagementServiceImpl implements FeedbackManagementService 
     @Override
     public Integer getCountOfFeedbackResults(String filter) throws FeedbackManagementException {
 
-        FeedbackMgtDAO feedbackMgtDAO = new FeedbackMgtDAOImpl();
         Integer resultCount = feedbackMgtDAO.countListResults(filter);
         if (log.isDebugEnabled()) {
             log.debug("Feedback count for given filter : " + resultCount);
         }
         return resultCount;
+    }
+
+    @Override
+    public boolean checkIfFeedbackExistsById(String feedbackId) throws FeedbackManagementException {
+
+        boolean feedbackExists = false;
+        Integer retrievedFeedbackId = feedbackMgtDAO.checkIfFeedbackExists(feedbackId);
+        if (retrievedFeedbackId != null) {
+            feedbackExists = true;
+        }
+        return feedbackExists;
     }
 
     /**

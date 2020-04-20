@@ -28,28 +28,34 @@ import java.util.UUID;
 public class FeedbackTest {
 
     @Test
-    public void testFeedback() throws Exception {
+    public void testFeedback() {
 
         Integer id = 1;
         String message = "This is a sample feedback";
         String email = "kim@gmail.com";
         String contactNo = "0123456789";
+        String userId = UUID.randomUUID().toString();
+        int tenantId = 1;
         String uuid = UUID.randomUUID().toString();
         String timeCreated = "2020-01-01 10:00:00";
         ArrayList<String> tags = new ArrayList<>(Arrays.asList("tag1", "tag2", "tag3"));
 
-        Feedback feedback = new Feedback(id, message, email, contactNo, uuid, timeCreated);
+        Feedback feedback = new Feedback(id, message, email, contactNo, userId, tenantId, uuid, timeCreated);
         Assert.assertEquals(feedback.getMessage(), message);
         Assert.assertEquals(feedback.getEmail(), email);
         Assert.assertEquals(feedback.getContactNo(), contactNo);
+        Assert.assertEquals(feedback.getUserId(), userId);
+        Assert.assertEquals(feedback.getTenantId(), tenantId);
         Assert.assertEquals(feedback.getUuid(), uuid);
         Assert.assertEquals(feedback.getTimeCreated(), timeCreated);
 
-        feedback = new Feedback(id, message, email, contactNo, uuid, tags);
+        feedback = new Feedback(id, message, email, contactNo, userId, tenantId, uuid, tags);
         Assert.assertEquals(feedback.getId(), id);
         Assert.assertEquals(feedback.getMessage(), message);
         Assert.assertEquals(feedback.getEmail(), email);
         Assert.assertEquals(feedback.getContactNo(), contactNo);
+        Assert.assertEquals(feedback.getUserId(), userId);
+        Assert.assertEquals(feedback.getTenantId(), tenantId);
         Assert.assertEquals(feedback.getUuid(), uuid);
         Assert.assertEquals(feedback.getTags(), tags);
 
@@ -58,6 +64,8 @@ public class FeedbackTest {
         feedback.setMessage(message);
         feedback.setEmail(email);
         feedback.setContactNo(contactNo);
+        feedback.setUserId(userId);
+        feedback.setTenantId(tenantId);
         feedback.setUuid(uuid);
         feedback.setTimeCreated(timeCreated);
         feedback.setTags(tags);
@@ -65,9 +73,10 @@ public class FeedbackTest {
         Assert.assertEquals(feedback.getMessage(), message);
         Assert.assertEquals(feedback.getEmail(), email);
         Assert.assertEquals(feedback.getContactNo(), contactNo);
+        Assert.assertEquals(feedback.getUserId(), userId);
+        Assert.assertEquals(feedback.getTenantId(), tenantId);
         Assert.assertEquals(feedback.getUuid(), uuid);
         Assert.assertEquals(feedback.getTimeCreated(), timeCreated);
         Assert.assertEquals(feedback.getTags(), tags);
-
     }
 }

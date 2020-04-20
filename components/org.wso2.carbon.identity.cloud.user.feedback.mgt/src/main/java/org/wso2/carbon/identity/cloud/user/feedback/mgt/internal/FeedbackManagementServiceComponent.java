@@ -59,7 +59,6 @@ public class FeedbackManagementServiceComponent {
     protected void activate(ComponentContext context) {
 
         BundleContext bundleContext = context.getBundleContext();
-        log.info("Feedback Management bundle is activated.");
         FeedbackConfigParser configParser = new FeedbackConfigParser();
         DataSource dataSource = initDataSource(configParser);
 
@@ -68,7 +67,7 @@ public class FeedbackManagementServiceComponent {
         serviceRegistration = bundleContext.registerService(FeedbackManagementService.class,
                 FeedbackManagementServiceImpl.getInstance(), null);
         if (log.isDebugEnabled()) {
-            log.debug("Feedback Management bundle is activated.");
+            log.debug("Cloud Feedback Management bundle is activated.");
         }
 
     }
@@ -77,7 +76,7 @@ public class FeedbackManagementServiceComponent {
     protected void deactivate(ComponentContext context) {
 
         if (log.isDebugEnabled()) {
-            log.debug("Function Library Management bundle is deactivated.");
+            log.debug("Cloud Feedback Management bundle is deactivated.");
         }
 
         if (serviceRegistration != null) {
@@ -90,7 +89,6 @@ public class FeedbackManagementServiceComponent {
         String dataSourceName = configParser.getFeedbackDataSource();
         DataSource dataSource;
         Context ctx;
-        log.info("In Feedback Management data source initiation " + dataSourceName);
         try {
             ctx = new InitialContext();
             dataSource = (DataSource) ctx.lookup(dataSourceName);

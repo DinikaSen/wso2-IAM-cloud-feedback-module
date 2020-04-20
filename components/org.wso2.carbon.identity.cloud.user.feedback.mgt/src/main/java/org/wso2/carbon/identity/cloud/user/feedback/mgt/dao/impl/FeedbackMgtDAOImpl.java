@@ -29,7 +29,6 @@ import org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtCons
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtConstants.ErrorMessages;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.constant.FeedbackMgtSQLConstants;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.dao.FeedbackMgtDAO;
-import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementClientException;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.exception.FeedbackManagementException;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.model.Feedback;
 import org.wso2.carbon.identity.cloud.user.feedback.mgt.util.FeedbackExceptionManagementUtil;
@@ -42,8 +41,8 @@ import java.util.List;
 import static org.wso2.carbon.identity.core.util.LambdaExceptionUtils.rethrowConsumer;
 
 /**
- * This class access the CLD_FEEDBACK and CLD_FEEDBACK_TAGS tables in Feedback database to store, update retrieve
- * and delete feedback entries.
+ * This class access the CLD_FEEDBACK,CLD_FEEDBACK_TAGS, and CLD_FEEDBACK_TAG_MAPPINGS tables in Feedback database to
+ * store, update retrieve and delete feedback entries and feedback tags.
  */
 public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
 
@@ -60,7 +59,9 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                             preparedStatement.setString(1, userFeedback.getMessage());
                             preparedStatement.setString(2, userFeedback.getEmail());
                             preparedStatement.setString(3, userFeedback.getContactNo());
-                            preparedStatement.setString(4, userFeedback.getUuid());
+                            preparedStatement.setString(4, userFeedback.getUserId());
+                            preparedStatement.setInt(5, userFeedback.getTenantId());
+                            preparedStatement.setString(6, userFeedback.getUuid());
                         }), userFeedback, true);
 
                 if (userFeedback.getTags() != null) {
@@ -69,7 +70,8 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                 return null;
             });
         } catch (TransactionException e) {
-            throw FeedbackExceptionManagementUtil.buildServerException(ErrorMessages.ERROR_CODE_ADD_USER_FEEDBACK, e);
+            throw FeedbackExceptionManagementUtil
+                    .buildServerException(ErrorMessages.ERROR_CODE_ADD_USER_FEEDBACK, e);
         }
         return userFeedback;
     }
@@ -113,8 +115,10 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                                                 feedbackResult.setMessage(resultSet.getString(2));
                                                 feedbackResult.setEmail(resultSet.getString(3));
                                                 feedbackResult.setContactNo(resultSet.getString(4));
-                                                feedbackResult.setUuid(resultSet.getString(5));
-                                                feedbackResult.setTimeCreated(resultSet.getString(6));
+                                                feedbackResult.setUserId(resultSet.getString(5));
+                                                feedbackResult.setTenantId(resultSet.getInt(6));
+                                                feedbackResult.setUuid(resultSet.getString(7));
+                                                feedbackResult.setTimeCreated(resultSet.getString(8));
                                                 return feedbackResult;
                                             }, preparedStatement -> {
                                                 preparedStatement.setString(1, filterResolvedForSQL);
@@ -150,10 +154,12 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                                                 feedbackResult.setMessage(resultSet.getString(2));
                                                 feedbackResult.setEmail(resultSet.getString(3));
                                                 feedbackResult.setContactNo(resultSet.getString(4));
-                                                feedbackResult.setUuid(resultSet.getString(5));
-                                                feedbackResult.setTimeCreated(resultSet.getString(6));
+                                                feedbackResult.setUserId(resultSet.getString(5));
+                                                feedbackResult.setTenantId(resultSet.getInt(6));
+                                                feedbackResult.setUuid(resultSet.getString(7));
+                                                feedbackResult.setTimeCreated(resultSet.getString(8));
                                                 feedbackResult.setTags(
-                                                        new ArrayList<>(Arrays.asList(resultSet.getString(7))));
+                                                        new ArrayList<>(Arrays.asList(resultSet.getString(9))));
                                                 return feedbackResult;
                                             }, preparedStatement -> {
                                                 preparedStatement.setString(1, filterResolvedForSQL);
@@ -190,7 +196,9 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                                     resultSet.getString(3),
                                     resultSet.getString(4),
                                     resultSet.getString(5),
-                                    resultSet.getString(6)),
+                                    resultSet.getInt(6),
+                                    resultSet.getString(7),
+                                    resultSet.getString(8)),
                     preparedStatement -> preparedStatement.setString(1, feedbackID));
         } catch (DataAccessException e) {
             throw FeedbackExceptionManagementUtil
@@ -207,47 +215,58 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
     @Override
     public String deleteFeedbackEntry(String feedbackID) throws FeedbackManagementException {
 
-        Integer id = checkResourceExistence(feedbackID);
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            jdbcTemplate.withTransaction(namedTemplate -> {
-                namedTemplate.executeUpdate(FeedbackMgtSQLConstants.REMOVE_FEEDBACK, preparedStatement ->
-                        preparedStatement.setString(1, feedbackID));
-                deleteTags(id, feedbackID);
-                return null;
-            });
-        } catch (TransactionException e) {
+        Integer id = checkIfFeedbackExists(feedbackID);
+        if (id != null) {
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            try {
+                jdbcTemplate.withTransaction(namedTemplate -> {
+                    namedTemplate.executeUpdate(FeedbackMgtSQLConstants.REMOVE_FEEDBACK, preparedStatement ->
+                            preparedStatement.setString(1, feedbackID));
+                    deleteTags(id, feedbackID);
+                    return null;
+                });
+            } catch (TransactionException e) {
+                throw FeedbackExceptionManagementUtil
+                        .buildServerException(ErrorMessages.ERROR_CODE_DELETE_FEEDBACK, feedbackID, e);
+            }
+            return feedbackID;
+        } else {
             throw FeedbackExceptionManagementUtil
-                    .buildServerException(ErrorMessages.ERROR_CODE_DELETE_FEEDBACK, feedbackID, e);
+                    .buildClientException(ErrorMessages.ERROR_NOT_FOUND_RESOURCE_ID, feedbackID);
         }
-        return feedbackID;
     }
 
     @Override
     public Feedback updateFeedbackEntry(String feedbackID, Feedback feedbackEntry) throws FeedbackManagementException {
 
-        Integer id = checkResourceExistence(feedbackID);
-        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
-        try {
-            jdbcTemplate.withTransaction(namedTemplate -> {
-                namedTemplate.executeUpdate(FeedbackMgtSQLConstants.UPDATE_FEEDBACK_INFO, preparedStatement -> {
-                    preparedStatement.setString(1, feedbackEntry.getMessage());
-                    preparedStatement.setString(2, feedbackEntry.getEmail());
-                    preparedStatement.setString(3, feedbackEntry.getContactNo());
-                    preparedStatement.setString(4, feedbackID);
-                });
+        Integer id = checkIfFeedbackExists(feedbackID);
+        if (id != null) {
+            JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+            try {
+                jdbcTemplate.withTransaction(namedTemplate -> {
+                    namedTemplate.executeUpdate(FeedbackMgtSQLConstants.UPDATE_FEEDBACK_INFO, preparedStatement -> {
+                        preparedStatement.setString(1, feedbackEntry.getMessage());
+                        preparedStatement.setString(2, feedbackEntry.getEmail());
+                        preparedStatement.setString(3, feedbackEntry.getContactNo());
+                        preparedStatement.setString(4, feedbackID);
+                    });
 
-                deleteTags(id, feedbackID);
-                if (feedbackEntry.getTags() != null) {
-                    addTags(id, feedbackEntry.getTags());
-                }
-                return null;
-            });
-        } catch (TransactionException e) {
-            throw FeedbackExceptionManagementUtil.buildServerException(ErrorMessages.ERROR_CODE_UPDATE_USER_FEEDBACK,
-                    feedbackID, e);
+                    deleteTags(id, feedbackID);
+                    if (feedbackEntry.getTags() != null) {
+                        addTags(id, feedbackEntry.getTags());
+                    }
+                    return null;
+                });
+            } catch (TransactionException e) {
+                throw FeedbackExceptionManagementUtil
+                        .buildServerException(ErrorMessages.ERROR_CODE_UPDATE_USER_FEEDBACK,
+                                feedbackID, e);
+            }
+            return getFeedbackEntry(feedbackID);
+        } else {
+            throw FeedbackExceptionManagementUtil
+                    .buildClientException(ErrorMessages.ERROR_NOT_FOUND_RESOURCE_ID, feedbackID);
         }
-        return getFeedbackEntry(feedbackID);
     }
 
     @Override
@@ -278,29 +297,15 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
 
     }
 
-    /**
-     * Check whether feedback record by given resource ID exists in the database.
-     *
-     * @param feedbackId resource Id
-     * @return Auto-incrementing id of the feedback record in database
-     * @throws FeedbackManagementException
-     */
-    private Integer checkResourceExistence(String feedbackId) throws FeedbackManagementException {
+    @Override
+    public Integer checkIfFeedbackExists(String feedbackId) throws FeedbackManagementException {
 
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
-            Integer id = jdbcTemplate.fetchSingleRecord(FeedbackMgtSQLConstants.CHECK_RESOURCE_EXISTS, (resultSet,
-                                                                                                        rowNumber) ->
+            return (jdbcTemplate.fetchSingleRecord(FeedbackMgtSQLConstants.CHECK_RESOURCE_EXISTS, (resultSet,
+                                                                                                   rowNumber) ->
                             resultSet.getInt(1),
-                    preparedStatement -> preparedStatement.setString(1, feedbackId));
-
-            if (id == null) {
-                throw FeedbackExceptionManagementUtil.buildClientException(ErrorMessages.ERROR_NOT_FOUND_RESOURCE_ID,
-                        feedbackId);
-            }
-
-            return id;
-
+                    preparedStatement -> preparedStatement.setString(1, feedbackId)));
         } catch (DataAccessException e) {
             throw FeedbackExceptionManagementUtil
                     .buildServerException(ErrorMessages.ERROR_CODE_SELECT_FEEDBACK_BY_ID, feedbackId, e);
@@ -310,7 +315,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
     /**
      * Insert tags corresponding to a feedback record in the database.
      *
-     * @param feedbackId auto-incrementing ID of the feedback record in the database
+     * @param feedbackId auto-generated ID of the feedback record in the database
      * @throws FeedbackManagementException
      */
     private void addTags(int feedbackId, ArrayList<String> tags) throws FeedbackManagementException {
@@ -318,26 +323,71 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(template -> {
-                template.executeBatchInsert(FeedbackMgtSQLConstants.STORE_FEEDBACK_TAG, (preparedStatement -> {
-
-                    for (String tag : tags) {
+                template.executeBatchInsert(FeedbackMgtSQLConstants.STORE_FEEDBACK_TAG_MAPPINGS, preparedStatement -> {
+                    tags.forEach(rethrowConsumer(tagName -> {
+                        Integer tagID = getTagId(tagName);
                         preparedStatement.setInt(1, feedbackId);
-                        preparedStatement.setString(2, tag);
+                        preparedStatement.setInt(2, tagID);
                         preparedStatement.addBatch();
-                    }
-                }), null);
+                    }));
+                }, null);
                 return null;
             });
         } catch (TransactionException e) {
             throw FeedbackExceptionManagementUtil
-                    .buildServerException(ErrorMessages.ERROR_CODE_ADD_USER_FEEDBACK_TAGS, e);
+                    .buildServerException(ErrorMessages.ERROR_CODE_ADD_FEEDBACK_TAG_MAPPINGS, e);
         }
+    }
+
+    /**
+     * Get the ID of the tag from in the database if the tag exists, and if it does not
+     * add the tag to the database.
+     *
+     * @param tag name
+     * @return Auto-generated ID of the tag
+     * @throws FeedbackManagementException
+     */
+    private Integer getTagId(String tag) throws FeedbackManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            Integer tagId = jdbcTemplate.fetchSingleRecord(FeedbackMgtSQLConstants.GET_TAG_ID, (resultSet, rowNumber) ->
+                    resultSet.getInt(1), preparedStatement -> preparedStatement.setString(1, tag));
+            if (tagId == null) {
+                tagId = addTagToDB(tag);
+            }
+            return tagId;
+        } catch (DataAccessException e) {
+            throw FeedbackExceptionManagementUtil.buildServerException(ErrorMessages.ERROR_CODE_ADD_FEEDBACK_TAG, e);
+        }
+    }
+
+    /**
+     * Insert a new tag to the database.
+     *
+     * @param tag name of the tag
+     * @return tagId auto-generated ID of the tag in the database
+     * @throws FeedbackManagementException
+     */
+
+    private Integer addTagToDB(String tag) throws FeedbackManagementException {
+
+        JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
+        try {
+            Integer insertedId = jdbcTemplate.executeInsert(FeedbackMgtSQLConstants.INSERT_TAG, (preparedStatement -> {
+                preparedStatement.setString(1, tag);
+            }), null, true);
+            return insertedId;
+        } catch (DataAccessException e) {
+            throw FeedbackExceptionManagementUtil.buildServerException(ErrorMessages.ERROR_CODE_GET_FEEDBACK_TAG, e);
+        }
+
     }
 
     /**
      * List tags corresponding to a feedback record in the database.
      *
-     * @param feedbackId auto-incrementing ID of the feedback record in the database
+     * @param feedbackId auto-generated ID of the feedback record in the database
      * @return List of tags corresponding to the requested feedback record
      * @throws FeedbackManagementException
      */
@@ -359,7 +409,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
     /**
      * Delete tags corresponding to a feedback record in the database.
      *
-     * @param id           auto-incrementing ID of the feedback record in the database
+     * @param id           auto-generated ID of the feedback record in the database
      * @param feedbackUuid feedback resource ID
      * @throws FeedbackManagementException
      */
@@ -368,7 +418,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
         JdbcTemplate jdbcTemplate = JdbcUtils.getNewTemplate();
         try {
             jdbcTemplate.withTransaction(namedTemplate -> {
-                namedTemplate.executeUpdate(FeedbackMgtSQLConstants.REMOVE_FEEDBACK_TAG, preparedStatement ->
+                namedTemplate.executeUpdate(FeedbackMgtSQLConstants.REMOVE_FEEDBACK_TAG_MAPPINGS, preparedStatement ->
                         preparedStatement.setInt(1, id));
                 return null;
             });
@@ -428,8 +478,10 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
                                     feedbackResult.setMessage(resultSet.getString(2));
                                     feedbackResult.setEmail(resultSet.getString(3));
                                     feedbackResult.setContactNo(resultSet.getString(4));
-                                    feedbackResult.setUuid(resultSet.getString(5));
-                                    feedbackResult.setTimeCreated(resultSet.getString(6));
+                                    feedbackResult.setUserId(resultSet.getString(5));
+                                    feedbackResult.setTenantId(resultSet.getInt(6));
+                                    feedbackResult.setUuid(resultSet.getString(7));
+                                    feedbackResult.setTimeCreated(resultSet.getString(8));
                                     return feedbackResult;
                                 }, preparedStatement -> {
                                     preparedStatement.setInt(1, limit);
@@ -557,7 +609,7 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
      * @return A pair of string values (filterAttribute -> filterOperation)
      * @throws FeedbackManagementException
      */
-    private Pair<String, String> buildFilter(String filter) throws FeedbackManagementClientException {
+    private Pair<String, String> buildFilter(String filter) throws FeedbackManagementException {
 
         if (StringUtils.isNotBlank(filter)) {
             String[] filterArgs = filter.split(" ");
@@ -591,10 +643,10 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
      * @param operation      filter operation specified (eq, co, sw, ew)
      * @param attributeValue value to which filtering is applied
      * @return sql formatted filter term
-     * @throws FeedbackManagementClientException
+     * @throws FeedbackManagementException
      */
     private String generateFilterString(String operation, String attributeValue)
-            throws FeedbackManagementClientException {
+            throws FeedbackManagementException {
 
         String formattedFilter = null;
         try {
@@ -637,9 +689,9 @@ public class FeedbackMgtDAOImpl implements FeedbackMgtDAO {
      *
      * @param filterAttribute to be applied for sql command
      * @return sql statement part to be appended to base sql statement
-     * @throws FeedbackManagementClientException
+     * @throws FeedbackManagementException
      */
-    private String generateSqlFilterForCount(String filterAttribute) throws FeedbackManagementClientException {
+    private String generateSqlFilterForCount(String filterAttribute) throws FeedbackManagementException {
 
         String sqlQueryPart = "";
         try {

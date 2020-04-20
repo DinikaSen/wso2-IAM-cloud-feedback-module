@@ -84,4 +84,13 @@ public interface FeedbackManagementService {
      * @throws FeedbackManagementException
      */
     Integer getCountOfFeedbackResults(String filter) throws FeedbackManagementException;
+
+    /**
+     * Get the count of Feedback entries that match the given condition.
+     *
+     * @param feedbackId    Resource ID
+     * @return true if feedback exists by the given ID
+     * @throws FeedbackManagementException
+     */
+    boolean checkIfFeedbackExistsById(String feedbackId) throws FeedbackManagementException;
 }
